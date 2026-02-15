@@ -13,19 +13,15 @@ plugins {
 
 val localProperties = Properties().apply {
     val file = rootProject.file("local.properties")
-    if (file.exists()) {
-        file.inputStream().use(::load)
-    }
+    if (file.exists()) file.inputStream().use(::load)
 }
 
-fun secretProperty(key: String, defaultValue: String = ""): String {
-    return (
-        providers.gradleProperty(key).orNull
-            ?: System.getenv(key)
-            ?: localProperties.getProperty(key)
-            ?: defaultValue
-        ).trim()
-}
+fun secretProperty(key: String, defaultValue: String = ""): String = (
+            providers.gradleProperty(key).orNull
+                ?: System.getenv(key)
+                ?: localProperties.getProperty(key)
+                ?: defaultValue
+            ).trim()
 
 fun kotlinEscaped(value: String): String {
     return value
@@ -59,39 +55,47 @@ val configuredHttpLogsEnabled = secretProperty(
     defaultValue = "true",
 ).toBooleanStrictOrNull() ?: true
 
-val generatedSecretsDir = layout.buildDirectory.dir("generated/source/localSecrets/commonMain/kotlin")
+val generatedSecretsDir =
+    layout.buildDirectory.dir("generated/source/localSecrets/commonMain/kotlin")
 
-fun writeLocalSecretsFile() {
-    val packageDir = generatedSecretsDir.get().asFile
-        .resolve("com/billiardsdraw/vinceproshop/core")
-    packageDir.mkdirs()
-    val secretsFile = packageDir.resolve("LocalSecrets.kt")
-    secretsFile.writeText(
-        """
-        package com.billiardsdraw.vinceproshop.core
-
-        object LocalSecrets {
-            const val API_BASE_URL: String = "${kotlinEscaped(configuredApiBaseUrl)}"
-            const val STRIPE_PUBLISHABLE_KEY: String = "${kotlinEscaped(configuredStripePublishableKey)}"
-            const val STRIPE_MERCHANT_DISPLAY_NAME: String = "${kotlinEscaped(configuredStripeMerchantDisplayName)}"
-            const val HTTP_LOGS_ENABLED: Boolean = $configuredHttpLogsEnabled
-        }
-
-        fun localApiBaseUrl(): String = LocalSecrets.API_BASE_URL
-        fun localStripePublishableKey(): String = LocalSecrets.STRIPE_PUBLISHABLE_KEY
-        fun localStripeMerchantDisplayName(): String = LocalSecrets.STRIPE_MERCHANT_DISPLAY_NAME
-        fun localHttpLogsEnabled(): Boolean = LocalSecrets.HTTP_LOGS_ENABLED
-        """.trimIndent()
-    )
-}
-
-// Keep generated sources available for IDE sync and command-line builds.
-writeLocalSecretsFile()
+val apiBaseUrl = configuredApiBaseUrl
+val stripeKey = configuredStripePublishableKey
+val merchantName = configuredStripeMerchantDisplayName
+val httpLogs = configuredHttpLogsEnabled
 
 val generateLocalSecrets by tasks.registering {
     outputs.dir(generatedSecretsDir)
+
     doLast {
-        writeLocalSecretsFile()
+        val packageDir = generatedSecretsDir?.get()?.asFile?.resolve("com/billiardsdraw/vinceproshop/core")
+        packageDir?.mkdirs()
+        packageDir?.resolve("LocalSecrets.kt")?.writeText(
+            """
+            package com.billiardsdraw.vinceproshop.core
+            
+            object LocalSecrets {
+                const val API_BASE_URL: String = "${kotlinEscaped(apiBaseUrl)}"
+                const val STRIPE_PUBLISHABLE_KEY: String = "${kotlinEscaped(stripeKey)}
+                const val STRIPE_MERCHANT_DISPLAY_NAME: String = "${kotlinEscaped(merchantName)}
+                const val HTTP_LOGS_ENABLED: Boolean = $httpLogs
+            }
+            
+            fun localApiBaseUrl(): String = LocalSecrets.API_BASE_URL
+            fun localStripePublishableKey(): String = LocalSecrets.STRIPE_PUBLISHABLE_KEY
+            fun localStripeMerchantDisplayName(): String = LocalSecrets.STRIPE_MERCHANT_DISPLAY
+            fun localHttpLogsEnabled(): Boolean = LocalSecrets.HTTP_LOGS_ENABLED
+            """.trimIndent()
+        )
+    }
+}
+
+afterEvaluate {
+    tasks.matching { task ->
+        (task.name.startsWith("ksp") && task.name.contains("Ios", ignoreCase = true))
+                || (task.name.contains("compile", ignoreCase = true)
+                && task.name.contains("kotlin", ignoreCase = true))
+    }.configureEach {
+        dependsOn(generateLocalSecrets)
     }
 }
 
@@ -119,6 +123,7 @@ kotlin {
             }
         }
     }
+
     listOf(
         iosX64(),
         iosArm64(),
@@ -188,7 +193,7 @@ kotlin {
 
 tasks.matching { task ->
     task.name.contains("compile", ignoreCase = true) &&
-        task.name.contains("Kotlin", ignoreCase = true)
+            task.name.contains("Kotlin", ignoreCase = true)
 }.configureEach {
     dependsOn(generateLocalSecrets)
 }
