@@ -31,23 +31,54 @@ Aplicacion Kotlin Multiplatform (Android + iOS) para Vince Pro Shop, basada en e
 - Busqueda por nombre y marca
 - Detalle de producto (galeria, talla, cantidad, add-to-cart)
 - Carrito persistente en Room con subtotal
+- Checkout por steps (`shipping -> payment -> success`) usando Stripe
+- Tab de cuenta en bottom bar con login, pedidos usuario y secciones admin
 
-## Configuracion de red
+## Configuracion segura (`local.properties`)
 
-Base URL por defecto:
+Este proyecto genera `LocalSecrets.kt` automaticamente desde `local.properties` (sin plugin custom), siguiendo un enfoque de automatizacion de secretos para KMP.
 
-- Android: `http://10.0.2.2:4000/api`
-- iOS: `http://127.0.0.1:4000/api`
+Guia base utilizada:
 
-Puedes ajustar estos valores en:
+- `https://medium.com/@vptarasov/automating-work-with-secrets-in-kotlin-multiplatform-a2b4c587180b`
 
-- `composeApp/src/androidMain/kotlin/com/billiardsdraw/vinceproshop/NetworkPlatform.android.kt`
-- `composeApp/src/iosMain/kotlin/com/billiardsdraw/vinceproshop/NetworkPlatform.ios.kt`
+Llaves soportadas:
+
+- `VINCE_API_BASE_URL` (ej. `https://vinceproshop.com/api`)
+- `VINCE_STRIPE_PUBLISHABLE_KEY` (`pk_test_...` / `pk_live_...`)
+- `VINCE_STRIPE_MERCHANT_DISPLAY_NAME` (opcional)
+- `VINCE_HTTP_LOGS_ENABLED` (`true` / `false`)
+
+Referencia base: usa `local.properties.example` como plantilla local.
 
 ## Permisos
 
-- Android: `INTERNET` en `composeApp/src/androidMain/AndroidManifest.xml`
+- Android: `INTERNET` y `ACCESS_NETWORK_STATE` en `androidApp/src/main/AndroidManifest.xml`
 - iOS: `NSAppTransportSecurity` (`NSAllowsArbitraryLoads`) en `iosApp/iosApp/Info.plist`
+
+## Stripe Checkout (Android + iOS)
+
+- Android:
+  - SDK oficial `com.stripe:stripe-android`.
+  - flujo nativo con `PaymentSheet` en `composeApp/src/androidMain/.../StripePaymentButton.android.kt`.
+- iOS:
+  - agrega `StripePaymentSheet` por Swift Package Manager al target `iosApp`.
+  - puente Swift/KMP en `iosApp/iosApp/StripePaymentBridge.swift` via `NotificationCenter`.
+- Backend requerido para checkout (igual que web):
+  - `POST /api/payments/create-intent` (crea PaymentIntent + transaccion `pending`)
+  - `POST /api/webhook` (actualiza `paid/failed` por eventos Stripe)
+- referencia oficial:
+  - Android: `https://docs.stripe.com/payments/mobile/accept-payment?platform=android`
+  - iOS: `https://docs.stripe.com/payments/mobile/accept-payment?platform=ios`
+
+## JWT Session Storage
+
+- Backend admite autenticacion por cookie `token` y por header `Authorization: Bearer ...` en rutas protegidas.
+- En Android, el JWT se guarda en DataStore cifrado manualmente (AES/GCM) con clave en Android Keystore:
+  - `composeApp/src/androidMain/kotlin/com/billiardsdraw/vinceproshop/data/security/EncryptedDataStoreTokenStore.kt`
+- En iOS, el JWT se guarda en DataStore Multiplatform cifrado manualmente (AES-CBC / CommonCrypto) con clave AES en Keychain:
+  - `composeApp/src/iosMain/kotlin/com/billiardsdraw/vinceproshop/data/security/IosEncryptedDataStoreTokenStore.kt`
+- En requests protegidas desde KMP se envian ambos headers para compatibilidad (`Authorization` + `Cookie token=...`).
 
 ## Ejecutar
 

@@ -1,9 +1,12 @@
 package com.billiardsdraw.vinceproshop.data.remote
 
+import com.billiardsdraw.vinceproshop.core.localApiBaseUrl
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.plugins.cookies.HttpCookies
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
@@ -18,6 +21,9 @@ actual fun createPlatformHttpClient(
     return HttpClient(engine) {
         install(ContentNegotiation) {
             json(json)
+        }
+        install(HttpCookies) {
+            storage = AcceptAllCookiesStorage()
         }
 
         install(HttpTimeout) {
@@ -37,4 +43,4 @@ actual fun createPlatformHttpClient(
     }
 }
 
-actual fun defaultApiBaseUrl(): String = "https://vinceproshop.com/api"
+actual fun defaultApiBaseUrl(): String = localApiBaseUrl()

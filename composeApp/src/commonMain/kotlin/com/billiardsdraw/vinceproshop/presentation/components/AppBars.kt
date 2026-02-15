@@ -12,11 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +27,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.billiardsdraw.vinceproshop.presentation.common.tr
 import com.billiardsdraw.vinceproshop.presentation.navigation.RootSection
+import org.jetbrains.compose.resources.vectorResource
+import vinceproshop_app.composeapp.generated.resources.Res
+import vinceproshop_app.composeapp.generated.resources.home
+import vinceproshop_app.composeapp.generated.resources.person
+import vinceproshop_app.composeapp.generated.resources.search
+import vinceproshop_app.composeapp.generated.resources.shopping_cart
+import vinceproshop_app.composeapp.generated.resources.storefront
 
 @Composable
 fun VinceTopBar(
@@ -73,7 +75,7 @@ fun VinceTopBar(
 
             Box(modifier = Modifier.clickable(onClick = onCartClick)) {
                 Icon(
-                    imageVector = Icons.Default.ShoppingCart,
+                    imageVector = vectorResource(Res.drawable.shopping_cart),
                     contentDescription = tr("Cart", "Carrito"),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(30.dp),
@@ -92,8 +94,10 @@ fun VinceTopBar(
 
 @Composable
 fun VinceBottomBar(
-    selected: RootSection,
-    onSelect: (RootSection) -> Unit,
+    selectedRoot: RootSection,
+    isAccountSelected: Boolean,
+    onSelectRoot: (RootSection) -> Unit,
+    onAccountClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Surface(modifier = modifier.fillMaxWidth()) {
@@ -105,28 +109,34 @@ fun VinceBottomBar(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             BottomItem(
-                icon = Icons.Default.Home,
+                icon = vectorResource(Res.drawable.home),
                 label = tr("Home", "Inicio"),
-                selected = selected == RootSection.Home,
-                onClick = { onSelect(RootSection.Home) },
+                selected = selectedRoot == RootSection.Home,
+                onClick = { onSelectRoot(RootSection.Home) },
             )
             BottomItem(
-                icon = Icons.Default.Storefront,
+                icon = vectorResource(Res.drawable.storefront),
                 label = tr("Catalog", "Productos"),
-                selected = selected == RootSection.Catalog,
-                onClick = { onSelect(RootSection.Catalog) },
+                selected = selectedRoot == RootSection.Catalog,
+                onClick = { onSelectRoot(RootSection.Catalog) },
             )
             BottomItem(
-                icon = Icons.Default.Search,
+                icon = vectorResource(Res.drawable.search),
                 label = tr("Search", "Buscar"),
-                selected = selected == RootSection.Search,
-                onClick = { onSelect(RootSection.Search) },
+                selected = selectedRoot == RootSection.Search,
+                onClick = { onSelectRoot(RootSection.Search) },
             )
             BottomItem(
-                icon = Icons.Default.ShoppingCart,
+                icon = vectorResource(Res.drawable.shopping_cart),
                 label = tr("Cart", "Carrito"),
-                selected = selected == RootSection.Cart,
-                onClick = { onSelect(RootSection.Cart) },
+                selected = selectedRoot == RootSection.Cart,
+                onClick = { onSelectRoot(RootSection.Cart) },
+            )
+            BottomItem(
+                icon = vectorResource(Res.drawable.person),
+                label = tr("Account", "Cuenta"),
+                selected = isAccountSelected,
+                onClick = onAccountClick,
             )
         }
     }

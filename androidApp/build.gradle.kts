@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.billiardsdraw.vinceproshop"
+    namespace = "com.billiardsdraw.androidApp"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {

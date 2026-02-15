@@ -1,0 +1,18 @@
+# Android SDK path (local only)
+sdk.dir=C\:\\Users\\your-user\\AppData\\Local\\Android\\Sdk
+
+# Public/mobile-safe backend configuration
+VINCE_API_BASE_URL=https://vinceproshop.com/api
+
+# Stripe publishable key (safe for client apps, never use secret key here)
+VINCE_STRIPE_PUBLISHABLE_KEY=pk_test_xxxxxxxxxxxxxxxxxxxxx
+
+# Optional merchant display name shown by PaymentSheet
+VINCE_STRIPE_MERCHANT_DISPLAY_NAME=Vince Pro Shop
+
+# Optional: Ktor HTTP request/response logs in app runtime
+VINCE_HTTP_LOGS_ENABLED=true
+
+# IMPORTANT:
+# Never put Stripe secret keys (sk_*) or any backend private credentials in this file for mobile apps.
+# Secret Stripe keys must stay on backend only.

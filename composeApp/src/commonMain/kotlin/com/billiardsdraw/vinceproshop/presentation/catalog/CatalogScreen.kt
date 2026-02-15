@@ -13,12 +13,24 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.billiardsdraw.vinceproshop.core.isSpanishLanguage
 import com.billiardsdraw.vinceproshop.domain.model.Category
@@ -39,10 +51,10 @@ fun CatalogScreen(
     onOpenProduct: (String) -> Unit,
     onSelectCategory: (String?) -> Unit,
     onToggleBrand: (String) -> Unit,
-    onMinPriceChanged: (String) -> Unit,
-    onMaxPriceChanged: (String) -> Unit,
-    onAvailabilityChanged: (AvailabilityFilter) -> Unit,
-    onSortChanged: (CatalogSort) -> Unit,
+    onMinPriceChange: (String) -> Unit,
+    onMaxPriceChange: (String) -> Unit,
+    onAvailabilityChange: (AvailabilityFilter) -> Unit,
+    onSortChange: (CatalogSort) -> Unit,
     onClearFilters: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -66,10 +78,10 @@ fun CatalogScreen(
                 languageCode = languageCode,
                 onSelectCategory = onSelectCategory,
                 onToggleBrand = onToggleBrand,
-                onMinPriceChanged = onMinPriceChanged,
-                onMaxPriceChanged = onMaxPriceChanged,
-                onAvailabilityChanged = onAvailabilityChanged,
-                onSortChanged = onSortChanged,
+                onMinPriceChange = onMinPriceChange,
+                onMaxPriceChange = onMaxPriceChange,
+                onAvailabilityChange = onAvailabilityChange,
+                onSortChange = onSortChange,
                 onClearFilters = onClearFilters,
             )
         }
@@ -100,7 +112,9 @@ fun CatalogScreen(
             key = { it.slug },
             span = { item -> if (item.cue) GridItemSpan(maxLineSpan) else GridItemSpan(1) },
         ) { entry ->
-            val product = (state.cueProducts + state.regularProducts).firstOrNull { it.slug == entry.slug } ?: return@items
+            val product =
+                (state.cueProducts + state.regularProducts).firstOrNull { it.slug == entry.slug }
+                    ?: return@items
             ProductCard(
                 product = product,
                 languageCode = languageCode,
@@ -126,10 +140,10 @@ private fun FilterPanel(
     languageCode: String,
     onSelectCategory: (String?) -> Unit,
     onToggleBrand: (String) -> Unit,
-    onMinPriceChanged: (String) -> Unit,
-    onMaxPriceChanged: (String) -> Unit,
-    onAvailabilityChanged: (AvailabilityFilter) -> Unit,
-    onSortChanged: (CatalogSort) -> Unit,
+    onMinPriceChange: (String) -> Unit,
+    onMaxPriceChange: (String) -> Unit,
+    onAvailabilityChange: (AvailabilityFilter) -> Unit,
+    onSortChange: (CatalogSort) -> Unit,
     onClearFilters: () -> Unit,
 ) {
     val brands = remember(state.products) { state.products.map { it.vendor }.distinct().sorted() }
@@ -148,10 +162,13 @@ private fun FilterPanel(
             options = listOf(
                 tr("All", "Todos") to (state.availability == AvailabilityFilter.All),
                 tr("In stock", "En stock") to (state.availability == AvailabilityFilter.InStock),
-                tr("Out of stock", "Sin stock") to (state.availability == AvailabilityFilter.OutOfStock),
+                tr(
+                    "Out of stock",
+                    "Sin stock"
+                ) to (state.availability == AvailabilityFilter.OutOfStock),
             ),
             onClick = { index ->
-                onAvailabilityChanged(
+                onAvailabilityChange(
                     when (index) {
                         1 -> AvailabilityFilter.InStock
                         2 -> AvailabilityFilter.OutOfStock
@@ -170,7 +187,7 @@ private fun FilterPanel(
                 tr("Price high", "Precio mayor") to (state.sort == CatalogSort.PriceDesc),
             ),
             onClick = { index ->
-                onSortChanged(
+                onSortChange(
                     when (index) {
                         1 -> CatalogSort.AlphaDesc
                         2 -> CatalogSort.PriceAsc
@@ -181,16 +198,11 @@ private fun FilterPanel(
             },
         )
 
-        ChipGroup(
-            title = tr("Category", "Categoria"),
-            options = categoryOptions(state.categories, languageCode, state.selectedCategoryId),
-            onClick = { index ->
-                if (index == 0) {
-                    onSelectCategory(null)
-                } else {
-                    onSelectCategory(state.categories[index - 1].id)
-                }
-            },
+        CategoryDropdown(
+            categories = state.categories,
+            languageCode = languageCode,
+            selectedCategoryId = state.selectedCategoryId,
+            onSelectCategory = onSelectCategory,
         )
 
         if (brands.isNotEmpty()) {
@@ -206,22 +218,117 @@ private fun FilterPanel(
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(
                 value = state.minPrice,
-                onValueChange = onMinPriceChanged,
+                onValueChange = onMinPriceChange,
                 singleLine = true,
                 label = { Text(tr("Min price", "Precio min")) },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics {
+                        contentDescription = tr("Minimum price input", "Campo de precio minimo")
+                    },
             )
             OutlinedTextField(
                 value = state.maxPrice,
-                onValueChange = onMaxPriceChanged,
+                onValueChange = onMaxPriceChange,
                 singleLine = true,
                 label = { Text(tr("Max price", "Precio max")) },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics {
+                        contentDescription = tr("Maximum price input", "Campo de precio maximo")
+                    },
             )
         }
 
         Button(onClick = onClearFilters) {
             Text(tr("Reset filters", "Limpiar filtros"))
+        }
+    }
+}
+
+data class CategoryTreeOption(
+    val id: String,
+    val label: String,
+    val depth: Int,
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CategoryDropdown(
+    categories: List<Category>,
+    languageCode: String,
+    selectedCategoryId: String?,
+    onSelectCategory: (String?) -> Unit,
+) {
+    val allLabel = if (isSpanishLanguage()) "Todas" else "All"
+    val options = remember(categories, languageCode) {
+        buildCategoryTreeOptions(categories, languageCode)
+    }
+    val selectedLabel = remember(categories, languageCode, selectedCategoryId) {
+        if (selectedCategoryId == null) {
+            allLabel
+        } else {
+            categories.firstOrNull { it.id == selectedCategoryId }?.localizedName(languageCode)
+                ?: allLabel
+        }
+    }
+    var expanded by remember { mutableStateOf(false) }
+
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(
+            text = tr("Category", "Categoria"),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded },
+        ) {
+            OutlinedTextField(
+                value = selectedLabel,
+                onValueChange = {},
+                readOnly = true,
+                singleLine = true,
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier = Modifier
+                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                    .fillMaxWidth()
+                    .semantics {
+                        contentDescription = tr("Category selector", "Selector de categoria")
+                    },
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+            ) {
+                DropdownMenuItem(
+                    text = { Text(allLabel) },
+                    onClick = {
+                        onSelectCategory(null)
+                        expanded = false
+                    },
+                )
+
+                if (options.isNotEmpty()) {
+                    HorizontalDivider()
+                }
+
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        text = {
+                            val indent = "   ".repeat(option.depth)
+                            val prefix = if (option.depth > 0) "- " else ""
+                            Text("$indent$prefix${option.label}")
+                        },
+                        onClick = {
+                            onSelectCategory(option.id)
+                            expanded = false
+                        },
+                    )
+                }
+            }
         }
     }
 }
@@ -258,14 +365,48 @@ private fun ChipGroup(
     }
 }
 
-private fun categoryOptions(
+private fun buildCategoryTreeOptions(
     categories: List<Category>,
     languageCode: String,
-    selectedCategoryId: String?,
-): List<Pair<String, Boolean>> {
-    val allLabel = if (isSpanishLanguage()) "Todas" else "All"
-    val base = listOf(allLabel to (selectedCategoryId == null))
-    return base + categories.map { category ->
-        category.localizedName(languageCode) to (selectedCategoryId == category.id)
+): List<CategoryTreeOption> {
+    if (categories.isEmpty()) return emptyList()
+
+    val byId = categories.associateBy { it.id }
+    val childrenByParent = categories.groupBy { category ->
+        category.parentId?.takeIf { byId.containsKey(it) }
     }
+    val visited = mutableSetOf<String>()
+    val result = mutableListOf<CategoryTreeOption>()
+
+    fun visit(parentId: String?, depth: Int) {
+        childrenByParent[parentId]
+            .orEmpty()
+            .sortedBy { it.localizedName(languageCode).lowercase() }
+            .forEach { child ->
+                if (!visited.add(child.id)) return@forEach
+                result += CategoryTreeOption(
+                    id = child.id,
+                    label = child.localizedName(languageCode),
+                    depth = depth,
+                )
+                visit(child.id, depth + 1)
+            }
+    }
+
+    visit(parentId = null, depth = 0)
+
+    categories
+        .sortedBy { it.localizedName(languageCode).lowercase() }
+        .forEach { category ->
+            if (!visited.contains(category.id)) {
+                result += CategoryTreeOption(
+                    id = category.id,
+                    label = category.localizedName(languageCode),
+                    depth = 0,
+                )
+                visit(category.id, 1)
+            }
+        }
+
+    return result
 }

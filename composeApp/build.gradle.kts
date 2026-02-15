@@ -1,5 +1,5 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -9,6 +9,90 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.room)
+}
+
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) {
+        file.inputStream().use(::load)
+    }
+}
+
+fun secretProperty(key: String, defaultValue: String = ""): String {
+    return (
+        providers.gradleProperty(key).orNull
+            ?: System.getenv(key)
+            ?: localProperties.getProperty(key)
+            ?: defaultValue
+        ).trim()
+}
+
+fun kotlinEscaped(value: String): String {
+    return value
+        .replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+}
+
+val configuredApiBaseUrlRaw = secretProperty(
+    key = "VINCE_API_BASE_URL",
+    defaultValue = "https://vinceproshop.com/api",
+).trimEnd('/')
+
+val configuredApiBaseUrl = if (configuredApiBaseUrlRaw.endsWith("/api")) {
+    configuredApiBaseUrlRaw
+} else {
+    "${configuredApiBaseUrlRaw.trimEnd('/')}/api"
+}
+
+val configuredStripePublishableKey = secretProperty(
+    key = "VINCE_STRIPE_PUBLISHABLE_KEY",
+    defaultValue = "",
+)
+
+val configuredStripeMerchantDisplayName = secretProperty(
+    key = "VINCE_STRIPE_MERCHANT_DISPLAY_NAME",
+    defaultValue = "Vince Pro Shop",
+)
+
+val configuredHttpLogsEnabled = secretProperty(
+    key = "VINCE_HTTP_LOGS_ENABLED",
+    defaultValue = "true",
+).toBooleanStrictOrNull() ?: true
+
+val generatedSecretsDir = layout.buildDirectory.dir("generated/source/localSecrets/commonMain/kotlin")
+
+fun writeLocalSecretsFile() {
+    val packageDir = generatedSecretsDir.get().asFile
+        .resolve("com/billiardsdraw/vinceproshop/core")
+    packageDir.mkdirs()
+    val secretsFile = packageDir.resolve("LocalSecrets.kt")
+    secretsFile.writeText(
+        """
+        package com.billiardsdraw.vinceproshop.core
+
+        object LocalSecrets {
+            const val API_BASE_URL: String = "${kotlinEscaped(configuredApiBaseUrl)}"
+            const val STRIPE_PUBLISHABLE_KEY: String = "${kotlinEscaped(configuredStripePublishableKey)}"
+            const val STRIPE_MERCHANT_DISPLAY_NAME: String = "${kotlinEscaped(configuredStripeMerchantDisplayName)}"
+            const val HTTP_LOGS_ENABLED: Boolean = $configuredHttpLogsEnabled
+        }
+
+        fun localApiBaseUrl(): String = LocalSecrets.API_BASE_URL
+        fun localStripePublishableKey(): String = LocalSecrets.STRIPE_PUBLISHABLE_KEY
+        fun localStripeMerchantDisplayName(): String = LocalSecrets.STRIPE_MERCHANT_DISPLAY_NAME
+        fun localHttpLogsEnabled(): Boolean = LocalSecrets.HTTP_LOGS_ENABLED
+        """.trimIndent()
+    )
+}
+
+// Keep generated sources available for IDE sync and command-line builds.
+writeLocalSecretsFile()
+
+val generateLocalSecrets by tasks.registering {
+    outputs.dir(generatedSecretsDir)
+    doLast {
+        writeLocalSecretsFile()
+    }
 }
 
 kotlin {
@@ -47,6 +131,9 @@ kotlin {
     }
 
     sourceSets {
+        commonMain {
+            kotlin.srcDir(generatedSecretsDir)
+        }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
@@ -54,7 +141,6 @@ kotlin {
             implementation(libs.compose.ui)
             implementation(libs.compose.components.resources)
             implementation(libs.compose.uiToolingPreview)
-
 
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.androidx.lifecycle.viewmodel.compose)
@@ -75,10 +161,18 @@ kotlin {
 
             implementation(libs.room.runtime)
             implementation(libs.sqlite.bundled)
+
+            // DataStore library
+            implementation(libs.androidx.datastore)
+            // The Preferences DataStore library
+            implementation(libs.androidx.datastore.preferences)
         }
 
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.stripe.android)
+            implementation(libs.androidx.datastore.preferences)
+            implementation(libs.androidx.credentials)
         }
 
         iosMain.dependencies {
@@ -89,6 +183,13 @@ kotlin {
             implementation(libs.kotlin.test)
         }
     }
+}
+
+tasks.matching { task ->
+    task.name.contains("compile", ignoreCase = true) &&
+        task.name.contains("Kotlin", ignoreCase = true)
+}.configureEach {
+    dependsOn(generateLocalSecrets)
 }
 
 room {

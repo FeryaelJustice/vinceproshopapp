@@ -3,15 +3,24 @@ package com.billiardsdraw.vinceproshop
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.billiardsdraw.vinceproshop.core.currentLanguageCode
 import com.billiardsdraw.vinceproshop.di.appModule
+import com.billiardsdraw.vinceproshop.presentation.account.AccountSheet
+import com.billiardsdraw.vinceproshop.presentation.account.AccountViewModel
 import com.billiardsdraw.vinceproshop.presentation.cart.CartScreen
 import com.billiardsdraw.vinceproshop.presentation.cart.CartViewModel
 import com.billiardsdraw.vinceproshop.presentation.catalog.CatalogScreen
@@ -32,8 +41,9 @@ import org.koin.compose.KoinApplication
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun App() {
+fun App(modifier: Modifier = Modifier) {
     KoinApplication(
         application = {
             modules(appModule)
@@ -47,13 +57,36 @@ fun App() {
             val catalogViewModel = koinViewModel<CatalogViewModel>(key = "catalog")
             val searchViewModel = koinViewModel<SearchViewModel>(key = "search")
             val cartViewModel = koinViewModel<CartViewModel>(key = "cart")
+            val accountViewModel = koinViewModel<AccountViewModel>(key = "account")
+            var isAccountSheetVisible by remember { mutableStateOf(false) }
 
             val homeState by homeViewModel.state.collectAsStateWithLifecycle()
             val catalogState by catalogViewModel.state.collectAsStateWithLifecycle()
             val searchState by searchViewModel.state.collectAsStateWithLifecycle()
             val cartState by cartViewModel.state.collectAsStateWithLifecycle()
+            val accountState by accountViewModel.state.collectAsStateWithLifecycle()
+            val accountSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+
+            if (isAccountSheetVisible) {
+                ModalBottomSheet(
+                    onDismissRequest = { isAccountSheetVisible = false },
+                    sheetState = accountSheetState,
+                ) {
+                    AccountSheet(
+                        state = accountState,
+                        languageCode = languageCode,
+                        onLogin = accountViewModel::login,
+                        onLogout = accountViewModel::logout,
+                        onRefresh = accountViewModel::refresh,
+                        onClearSavedCredential = accountViewModel::clearSavedCredential,
+                        onDismissAuthError = accountViewModel::clearAuthError,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
+                }
+            }
 
             Scaffold(
+                modifier = Modifier.windowInsetsPadding(WindowInsets.systemBars),
                 topBar = {
                     VinceTopBar(
                         cartCount = cartState.totalItems,
@@ -63,12 +96,20 @@ fun App() {
                 bottomBar = {
                     if (navigator.current !is AppDestination.ProductDetail) {
                         VinceBottomBar(
-                            selected = navigator.selectedSection(),
-                            onSelect = { section -> navigator.openRoot(section) },
+                            selectedRoot = navigator.selectedSection(),
+                            isAccountSelected = isAccountSheetVisible,
+                            onSelectRoot = { section ->
+                                isAccountSheetVisible = false
+                                navigator.openRoot(section)
+                            },
+                            onAccountClick = {
+                                isAccountSheetVisible = true
+                                accountViewModel.refresh()
+                            },
                         )
                     }
                 },
-                contentWindowInsets = WindowInsets.systemBars
+                contentWindowInsets = WindowInsets(0, 0, 0, 0)
             ) { padding ->
                 when (val destination = navigator.current) {
                     is AppDestination.Root -> {
@@ -91,10 +132,10 @@ fun App() {
                                 onOpenProduct = { slug -> navigator.openProduct(slug) },
                                 onSelectCategory = catalogViewModel::onCategorySelected,
                                 onToggleBrand = catalogViewModel::onBrandToggled,
-                                onMinPriceChanged = catalogViewModel::onMinPriceChanged,
-                                onMaxPriceChanged = catalogViewModel::onMaxPriceChanged,
-                                onAvailabilityChanged = catalogViewModel::onAvailabilityChanged,
-                                onSortChanged = catalogViewModel::onSortChanged,
+                                onMinPriceChange = catalogViewModel::onMinPriceChanged,
+                                onMaxPriceChange = catalogViewModel::onMaxPriceChanged,
+                                onAvailabilityChange = catalogViewModel::onAvailabilityChanged,
+                                onSortChange = catalogViewModel::onSortChanged,
                                 onClearFilters = catalogViewModel::clearFilters,
                                 modifier = Modifier.padding(padding),
                             )
@@ -113,6 +154,15 @@ fun App() {
                                 onUpdateQuantity = cartViewModel::updateQuantity,
                                 onRemove = cartViewModel::remove,
                                 onClearAll = cartViewModel::clearAll,
+                                onCustomerInfoChanged = cartViewModel::updateCustomerInfo,
+                                onContinueToPayment = cartViewModel::continueToPayment,
+                                onBackToShipping = cartViewModel::backToShipping,
+                                onPaymentStarted = cartViewModel::onPaymentStarted,
+                                onPaymentCompleted = cartViewModel::onPaymentCompleted,
+                                onPaymentCanceled = cartViewModel::onPaymentCanceled,
+                                onPaymentFailed = cartViewModel::onPaymentFailed,
+                                onResetCheckout = cartViewModel::resetCheckoutFlow,
+                                onDismissCheckoutFeedback = cartViewModel::dismissCheckoutFeedback,
                                 modifier = Modifier.padding(padding),
                             )
                         }
@@ -123,7 +173,7 @@ fun App() {
                             key = "detail-${destination.slug}",
                             parameters = { parametersOf(destination.slug) },
                         )
-                        val detailState by detailViewModel.state.collectAsState()
+                        val detailState by detailViewModel.state.collectAsStateWithLifecycle()
                         ProductDetailScreen(
                             state = detailState,
                             languageCode = languageCode,
