@@ -35,21 +35,22 @@ class AdminInventoryViewModel(
             _state.value = _state.value.copy(isLoading = true)
             runCatching { Pair(adminApi.inventory(), adminApi.categories()) }
                 .onSuccess { (products, categories) ->
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        error = null,
-                        products = products,
-                        categories = categories,
-                    )
-                }
-                .onFailure { throwable ->
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        error = throwable.message
-                            ?: tr("Could not load inventory", "No se pudo cargar inventario"),
-                    )
+                    _state.value =
+                        _state.value.copy(
+                            isLoading = false,
+                            error = null,
+                            products = products,
+                            categories = categories,
+                        )
+                }.onFailure { throwable ->
+                    _state.value =
+                        _state.value.copy(
+                            isLoading = false,
+                            error =
+                                throwable.message
+                                    ?: tr("Could not load inventory", "No se pudo cargar inventario"),
+                        )
                 }
         }
     }
 }
-

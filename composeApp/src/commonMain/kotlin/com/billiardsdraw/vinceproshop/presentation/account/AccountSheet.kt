@@ -1,6 +1,7 @@
 package com.billiardsdraw.vinceproshop.presentation.account
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,10 +13,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.clickable
-import androidx.compose.ui.platform.LocalTextToolbar
-import androidx.compose.ui.platform.TextToolbar
-import androidx.compose.ui.platform.TextToolbarStatus
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
@@ -35,6 +32,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalTextToolbar
+import androidx.compose.ui.platform.TextToolbar
+import androidx.compose.ui.platform.TextToolbarStatus
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.password
 import androidx.compose.ui.semantics.semantics
@@ -55,23 +55,23 @@ import vinceproshop_app.composeapp.generated.resources.visibility
 import vinceproshop_app.composeapp.generated.resources.visibility_off
 
 private enum class AccountItemType {
-    Header,          // Row con título "Account" + botón Refresh
-    LanguageLabel,   // Text "Language"
-    LanguageChips,   // Row con los 4 FilterChip
-    Loading,         // CircularProgressIndicator (sesión Y pedidos, mismo composable)
-    LoginHint,       // Text explicativo de login
+    Header, // Row con título "Account" + botón Refresh
+    LanguageLabel, // Text "Language"
+    LanguageChips, // Row con los 4 FilterChip
+    Loading, // CircularProgressIndicator (sesión Y pedidos, mismo composable)
+    LoginHint, // Text explicativo de login
     IdentifierField, // OutlinedTextField email/usuario
-    PasswordField,   // OutlinedTextField contraseña
-    ForgetCredential,// TextButton "Forget saved login"
-    LoginButton,     // Button "Log in"
-    AuthError,       // Text error de autenticación
-    UserCard,        // Surface con username/email/role
-    LogoutButton,    // Row con TextButton "Logout"
-    OrdersError,     // Text error cargando pedidos
-    SectionTitle,    // Text de título de sección (Admin Sections, Recent Orders, My Orders)
-    AdminSection,    // Row clickable de cada sección admin
-    Order,           // OrderCard (admin y user comparten el mismo composable)
-    EmptyOrders,     // Text "No orders yet" / "No hay pedidos"
+    PasswordField, // OutlinedTextField contraseña
+    ForgetCredential, // TextButton "Forget saved login"
+    LoginButton, // Button "Log in"
+    AuthError, // Text error de autenticación
+    UserCard, // Surface con username/email/role
+    LogoutButton, // Row con TextButton "Logout"
+    OrdersError, // Text error cargando pedidos
+    SectionTitle, // Text de título de sección (Admin Sections, Recent Orders, My Orders)
+    AdminSection, // Row clickable de cada sección admin
+    Order, // OrderCard (admin y user comparten el mismo composable)
+    EmptyOrders, // Text "No orders yet" / "No hay pedidos"
 }
 
 @Composable
@@ -175,10 +175,11 @@ fun AccountSheet(
         if (user == null) {
             item(contentType = AccountItemType.LoginHint) {
                 Text(
-                    text = tr(
-                        "Log in to see your orders or admin panel.",
-                        "Inicia sesion para ver tus pedidos o panel admin."
-                    ),
+                    text =
+                        tr(
+                            "Log in to see your orders or admin panel.",
+                            "Inicia sesion para ver tus pedidos o panel admin.",
+                        ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
@@ -191,26 +192,28 @@ fun AccountSheet(
                     },
                     singleLine = true,
                     label = { Text(tr("Email or username", "Email o usuario")) },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Email,
-                        imeAction = ImeAction.Next,
-                    ),
+                    keyboardOptions =
+                        KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next,
+                        ),
                     supportingText = {
                         if (state.savedCredential != null) {
                             Text(
                                 tr(
                                     "Autofilled from secure credential store",
-                                    "Autocompletado desde almacen seguro"
-                                )
+                                    "Autocompletado desde almacen seguro",
+                                ),
                             )
                         }
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .semantics {
-                            contentDescription =
-                                tr("Email or username input", "Campo de email o usuario")
-                        },
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .semantics {
+                                contentDescription =
+                                    tr("Email or username input", "Campo de email o usuario")
+                            },
                 )
             }
             item(contentType = AccountItemType.PasswordField) {
@@ -223,44 +226,49 @@ fun AccountSheet(
                         },
                         singleLine = true,
                         label = { Text(tr("Password", "Contraseña")) },
-                        keyboardOptions = KeyboardOptions(
-                            capitalization = KeyboardCapitalization.Unspecified,
-                            autoCorrectEnabled = false,
-                            keyboardType = KeyboardType.Password,
-                            imeAction = ImeAction.Done,
-                            platformImeOptions = null,
-                            showKeyboardOnFocus = null,
-                            hintLocales = null
-                        ),
-                        visualTransformation = if (isPasswordVisible) {
-                            VisualTransformation.None
-                        } else {
-                            PasswordVisualTransformation()
-                        },
+                        keyboardOptions =
+                            KeyboardOptions(
+                                capitalization = KeyboardCapitalization.Unspecified,
+                                autoCorrectEnabled = false,
+                                keyboardType = KeyboardType.Password,
+                                imeAction = ImeAction.Done,
+                                platformImeOptions = null,
+                                showKeyboardOnFocus = null,
+                                hintLocales = null,
+                            ),
+                        visualTransformation =
+                            if (isPasswordVisible) {
+                                VisualTransformation.None
+                            } else {
+                                PasswordVisualTransformation()
+                            },
                         trailingIcon = {
                             IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
                                 Icon(
-                                    imageVector = vectorResource(
+                                    imageVector =
+                                        vectorResource(
+                                            if (isPasswordVisible) {
+                                                Res.drawable.visibility_off
+                                            } else {
+                                                Res.drawable.visibility
+                                            },
+                                        ),
+                                    contentDescription =
                                         if (isPasswordVisible) {
-                                            Res.drawable.visibility_off
+                                            tr("Hide password", "Ocultar contraseña")
                                         } else {
-                                            Res.drawable.visibility
-                                        }
-                                    ),
-                                    contentDescription = if (isPasswordVisible) {
-                                        tr("Hide password", "Ocultar contraseña")
-                                    } else {
-                                        tr("Show password", "Mostrar contraseña")
-                                    },
+                                            tr("Show password", "Mostrar contraseña")
+                                        },
                                 )
                             }
                         },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .semantics {
-                                contentDescription = tr("Password input", "Campo de contraseña")
-                                password()
-                            },
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .semantics {
+                                    contentDescription = tr("Password input", "Campo de contraseña")
+                                    password()
+                                },
                     )
                 }
             }
@@ -285,7 +293,7 @@ fun AccountSheet(
                     if (state.isSubmittingAuth) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp
+                            strokeWidth = 2.dp,
                         )
                     } else {
                         Text(tr("Log in", "Iniciar sesion"))
@@ -371,16 +379,17 @@ fun AccountSheet(
             items(
                 state.adminSections,
                 key = { it.route },
-                contentType = { AccountItemType.AdminSection }) { section ->
+                contentType = { AccountItemType.AdminSection },
+            ) { section ->
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onOpenAdminRoute(section.route) }
-                        .background(
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
-                            shape = RoundedCornerShape(10.dp),
-                        )
-                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .clickable { onOpenAdminRoute(section.route) }
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                                shape = RoundedCornerShape(10.dp),
+                            ).padding(horizontal = 12.dp, vertical = 10.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -419,7 +428,8 @@ fun AccountSheet(
                 items(
                     state.adminOrders.take(8),
                     key = { it.id },
-                    contentType = { AccountItemType.Order }) { order ->
+                    contentType = { AccountItemType.Order },
+                ) { order ->
                     OrderCard(order = order, languageCode = languageCode)
                 }
             }

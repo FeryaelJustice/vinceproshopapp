@@ -35,9 +35,10 @@ fun ProductCard(
     modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
     ) {
         if (isCueLayout) {
@@ -49,21 +50,30 @@ fun ProductCard(
 }
 
 @Composable
-private fun CueProductLayout(product: Product, languageCode: String) {
+private fun CueProductLayout(
+    product: Product,
+    languageCode: String,
+) {
     Column(modifier = Modifier.padding(12.dp)) {
         AsyncImage(
-            model = product.media.firstOrNull()?.url.takeUnless { it.isNullOrBlank() } ?: product.imageUrl,
+            model =
+                product.media
+                    .firstOrNull()
+                    ?.url
+                    .takeUnless { it.isNullOrBlank() } ?: product.imageUrl,
             contentDescription = product.localizedName(languageCode),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(120.dp)
-                .clip(RoundedCornerShape(12.dp)),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+                    .clip(RoundedCornerShape(12.dp)),
             contentScale = ContentScale.Fit,
         )
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 10.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -91,23 +101,28 @@ private fun CueProductLayout(product: Product, languageCode: String) {
 }
 
 @Composable
-private fun GridProductLayout(product: Product, languageCode: String) {
+private fun GridProductLayout(
+    product: Product,
+    languageCode: String,
+) {
     Column(modifier = Modifier.padding(12.dp)) {
         Box {
             AsyncImage(
                 model = product.imageUrl,
                 contentDescription = product.localizedName(languageCode),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-                    .clip(RoundedCornerShape(12.dp)),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(12.dp)),
                 contentScale = ContentScale.Crop,
             )
             if (product.maxDiscount > 0.0) {
                 Surface(
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(8.dp),
+                    modifier =
+                        Modifier
+                            .align(Alignment.TopStart)
+                            .padding(8.dp),
                     shape = RoundedCornerShape(8.dp),
                     color = MaterialTheme.colorScheme.onSurface,
                 ) {

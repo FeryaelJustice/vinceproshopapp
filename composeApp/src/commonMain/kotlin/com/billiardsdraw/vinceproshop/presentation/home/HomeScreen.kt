@@ -19,13 +19,13 @@ import com.billiardsdraw.vinceproshop.presentation.components.HeroCarousel
 import com.billiardsdraw.vinceproshop.presentation.components.ProductCard
 
 private enum class HomeItemType {
-    Hero,         // HeroCarousel
+    Hero, // HeroCarousel
     SectionTitle, // Text "Quick View"
-    Empty,        // EmptyState sin productos
-    ProductRow,   // LazyRow con ProductCard
-    ProductRows,  // Lazy Row con ProductCard items
-    Error,        // Text de errorMessage
-    RetryButton,  // Button "Reintentar"
+    Empty, // EmptyState sin productos
+    ProductRow, // LazyRow con ProductCard
+    ProductRows, // Lazy Row con ProductCard items
+    Error, // Text de errorMessage
+    RetryButton, // Button "Reintentar"
 }
 
 @Composable
@@ -68,10 +68,11 @@ fun HomeScreen(
             item(contentType = HomeItemType.Empty) {
                 EmptyState(
                     title = tr("No products available", "No hay productos disponibles"),
-                    description = tr(
-                        "Try refreshing to fetch the latest catalog.",
-                        "Intenta actualizar para traer el catalogo mas reciente.",
-                    ),
+                    description =
+                        tr(
+                            "Try refreshing to fetch the latest catalog.",
+                            "Intenta actualizar para traer el catalogo mas reciente.",
+                        ),
                 )
             }
         }

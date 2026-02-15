@@ -8,24 +8,16 @@ class KtorCatalogApi(
     private val httpClient: HttpClient,
     private val baseUrl: String,
 ) : CatalogApi {
+    override suspend fun getProducts(): List<ProductDto> = httpClient.get(url("products")).body()
 
-    override suspend fun getProducts(): List<ProductDto> {
-        return httpClient.get(url("products")).body()
-    }
+    override suspend fun getCategories(): List<CategoryDto> = httpClient.get(url("products/categories")).body()
 
-    override suspend fun getCategories(): List<CategoryDto> {
-        return httpClient.get(url("products/categories")).body()
-    }
+    override suspend fun getFeaturedSlides(): List<FeaturedSlideDto> = httpClient.get(url("products/featured")).body()
 
-    override suspend fun getFeaturedSlides(): List<FeaturedSlideDto> {
-        return httpClient.get(url("products/featured")).body()
-    }
-
-    override suspend fun getProductBySlug(slug: String): ProductDto? {
-        return runCatching {
+    override suspend fun getProductBySlug(slug: String): ProductDto? =
+        runCatching {
             httpClient.get(url("products/$slug")).body<ProductDto>()
         }.getOrNull()
-    }
 
     private fun url(path: String): String = "${baseUrl.trimEnd('/')}/$path"
 }

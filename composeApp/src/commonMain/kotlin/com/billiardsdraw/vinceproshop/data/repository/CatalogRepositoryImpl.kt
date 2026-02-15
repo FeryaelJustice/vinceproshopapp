@@ -26,30 +26,25 @@ class CatalogRepositoryImpl(
     private val dispatchers: DispatchersProvider,
     private val apiBaseUrl: String,
 ) : CatalogRepository {
-
-    override fun observeProducts(): Flow<List<Product>> {
-        return productDao.observeAll().map { entities ->
+    override fun observeProducts(): Flow<List<Product>> =
+        productDao.observeAll().map { entities ->
             entities.map { it.toDomain(json) }
         }
-    }
 
-    override fun observeCategories(): Flow<List<Category>> {
-        return categoryDao.observeAll().map { entities ->
+    override fun observeCategories(): Flow<List<Category>> =
+        categoryDao.observeAll().map { entities ->
             entities.map { it.toDomain() }
         }
-    }
 
-    override fun observeFeaturedSlides(): Flow<List<FeaturedSlide>> {
-        return featuredDao.observeAll().map { entities ->
+    override fun observeFeaturedSlides(): Flow<List<FeaturedSlide>> =
+        featuredDao.observeAll().map { entities ->
             entities.map { it.toDomain(json) }.filter { it.isActive }
         }
-    }
 
-    override fun observeProduct(slug: String): Flow<Product?> {
-        return productDao.observeBySlug(slug).map { entity ->
+    override fun observeProduct(slug: String): Flow<Product?> =
+        productDao.observeBySlug(slug).map { entity ->
             entity?.toDomain(json)
         }
-    }
 
     override suspend fun refreshCatalog() {
         safeIo(dispatchers.io) {

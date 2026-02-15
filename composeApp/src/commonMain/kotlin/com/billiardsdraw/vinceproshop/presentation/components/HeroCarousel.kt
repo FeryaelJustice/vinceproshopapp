@@ -59,11 +59,12 @@ fun HeroCarousel(
 
         val slide = slides[index]
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(320.dp)
-                .clip(MaterialTheme.shapes.large)
-                .clickable { onSlideClick(slide) },
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(320.dp)
+                    .clip(MaterialTheme.shapes.large)
+                    .clickable { onSlideClick(slide) },
         ) {
             AsyncImage(
                 model = slide.imageUrl,
@@ -72,19 +73,21 @@ fun HeroCarousel(
                 contentScale = ContentScale.Crop,
             )
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            0f to Color.Transparent,
-                            1f to Color.Black.copy(alpha = 0.65f),
-                        )
-                    )
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                0f to Color.Transparent,
+                                1f to Color.Black.copy(alpha = 0.65f),
+                            ),
+                        ),
             )
             Column(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(20.dp),
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Text(
@@ -101,18 +104,20 @@ fun HeroCarousel(
             }
 
             Row(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 10.dp),
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 10.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 slides.indices.forEach { item ->
                     Box(
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(if (item == index) Color.White else Color.White.copy(alpha = 0.35f))
-                            .height(8.dp)
-                            .fillMaxWidth(fraction = 0.04f),
+                        modifier =
+                            Modifier
+                                .clip(CircleShape)
+                                .background(if (item == index) Color.White else Color.White.copy(alpha = 0.35f))
+                                .height(8.dp)
+                                .fillMaxWidth(fraction = 0.04f),
                     )
                 }
             }
@@ -123,14 +128,16 @@ fun HeroCarousel(
 @Composable
 private fun EmptyHero(modifier: Modifier = Modifier) {
     Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(220.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(220.dp),
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surfaceVariant),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center,
         ) {
             Text(

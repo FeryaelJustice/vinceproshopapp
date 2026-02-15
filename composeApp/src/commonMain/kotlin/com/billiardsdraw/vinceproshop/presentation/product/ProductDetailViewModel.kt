@@ -29,7 +29,6 @@ class ProductDetailViewModel(
     private val addCartItem: AddCartItemUseCase,
     private val dispatchers: DispatchersProvider,
 ) : ViewModel() {
-
     private val _state = MutableStateFlow(ProductDetailUiState())
     val state: StateFlow<ProductDetailUiState> = _state.asStateFlow()
 
@@ -41,11 +40,12 @@ class ProductDetailViewModel(
         viewModelScope.launch(dispatchers.main) {
             observeProduct(slug).collect { product ->
                 val selected = product?.options?.firstOrNull()?.value ?: "unique"
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    product = product,
-                    selectedSize = selected,
-                )
+                _state.value =
+                    _state.value.copy(
+                        isLoading = false,
+                        product = product,
+                        selectedSize = selected,
+                    )
             }
         }
     }
@@ -86,7 +86,7 @@ class ProductDetailViewModel(
                     price = basePrice,
                     discount = discount,
                     originalPrice = originalPrice,
-                )
+                ),
             )
             _state.value = _state.value.copy(message = "added")
         }

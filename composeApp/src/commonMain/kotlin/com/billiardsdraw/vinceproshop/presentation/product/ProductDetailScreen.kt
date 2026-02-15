@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,17 +34,16 @@ import com.billiardsdraw.vinceproshop.core.formatEuro
 import com.billiardsdraw.vinceproshop.domain.model.localizedDescription
 import com.billiardsdraw.vinceproshop.domain.model.localizedName
 import com.billiardsdraw.vinceproshop.presentation.common.tr
-import androidx.compose.runtime.remember
 
 private enum class ProductDetailItemType {
-    BackLink,      // Text "Volver al catalogo"
-    MainImage,     // AsyncImage principal
+    BackLink, // Text "Volver al catalogo"
+    MainImage, // AsyncImage principal
     ImageThumbnails, // LazyRow de miniaturas (solo si images.size > 1)
-    ProductInfo,   // Column con nombre, vendor, precio, descripción
-    SizeSelector,  // Column con FlowRow de AssistChip de tallas
-    QuantityPicker,// Row con IconButton - / cantidad / +
-    AddToCart,     // Button "Agregar al carrito"
-    CartMessage,   // Row con "Agregado al carrito" + "Cerrar"
+    ProductInfo, // Column con nombre, vendor, precio, descripción
+    SizeSelector, // Column con FlowRow de AssistChip de tallas
+    QuantityPicker, // Row con IconButton - / cantidad / +
+    AddToCart, // Button "Agregar al carrito"
+    CartMessage, // Row con "Agregado al carrito" + "Cerrar"
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -63,9 +63,10 @@ fun ProductDetailScreen(
         val product = state.product
         if (state.isLoading || product == null) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Text(tr("Loading product...", "Cargando producto..."))
@@ -73,12 +74,13 @@ fun ProductDetailScreen(
             return
         }
 
-        val images = remember {
-            buildList {
-                if (product.imageUrl.isNotBlank()) add(product.imageUrl)
-                addAll(product.media.map { it.url }.filter { it.isNotBlank() })
-            }.distinct()
-        }
+        val images =
+            remember {
+                buildList {
+                    if (product.imageUrl.isNotBlank()) add(product.imageUrl)
+                    addAll(product.media.map { it.url }.filter { it.isNotBlank() })
+                }.distinct()
+            }
         val selectedImage = images.getOrNull(state.selectedImageIndex) ?: product.imageUrl
 
         LazyColumn(
@@ -98,10 +100,11 @@ fun ProductDetailScreen(
                 AsyncImage(
                     model = selectedImage,
                     contentDescription = product.localizedName(languageCode),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(280.dp)
-                        .clip(RoundedCornerShape(16.dp)),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(280.dp)
+                            .clip(RoundedCornerShape(16.dp)),
                     contentScale = ContentScale.Crop,
                 )
             }
@@ -112,12 +115,14 @@ fun ProductDetailScreen(
                         itemsIndexed(
                             items = images,
                             key = { _, imageUrl -> imageUrl },
-                            contentType = { _, _ -> "contentType1" }) { index, imageUrl ->
+                            contentType = { _, _ -> "contentType1" },
+                        ) { index, imageUrl ->
                             Surface(
-                                modifier = Modifier
-                                    .size(68.dp)
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .clickable { onImageSelect(index) },
+                                modifier =
+                                    Modifier
+                                        .size(68.dp)
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .clickable { onImageSelect(index) },
                                 tonalElevation = if (index == state.selectedImageIndex) 4.dp else 0.dp,
                             ) {
                                 AsyncImage(
@@ -166,9 +171,12 @@ fun ProductDetailScreen(
                                 AssistChip(
                                     onClick = { onSelectSize(option.value) },
                                     label = { Text(option.label.ifBlank { option.value }) },
-                                    leadingIcon = if (option.value == state.selectedSize) {
-                                        { Text("●", color = MaterialTheme.colorScheme.primary) }
-                                    } else null,
+                                    leadingIcon =
+                                        if (option.value == state.selectedSize) {
+                                            { Text("●", color = MaterialTheme.colorScheme.primary) }
+                                        } else {
+                                            null
+                                        },
                                 )
                             }
                         }

@@ -71,9 +71,10 @@ fun AdminManageCrossSellScreen(
 
     var draft by remember { mutableStateOf<CrossSellDraft?>(null) }
 
-    val categoryOptions = remember(state.categories, languageCode) {
-        buildCategorySelectOptions(state.categories, languageCode = languageCode, onlyLeaf = false)
-    }
+    val categoryOptions =
+        remember(state.categories, languageCode) {
+            buildCategorySelectOptions(state.categories, languageCode = languageCode, onlyLeaf = false)
+        }
 
     Column(modifier = modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(
@@ -89,84 +90,98 @@ fun AdminManageCrossSellScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TextButton(onClick = viewModel::refresh, enabled = !state.isSaving) { Text(tr("Refresh", "Actualizar")) }
                 Button(enabled = !state.isSaving, onClick = {
-                    draft = CrossSellDraft(
-                        id = 0,
-                        sourceType = "analytics",
-                        triggerType = "product",
-                        triggerProductId = "",
-                        triggerCategoryId = "",
-                        name = "",
-                        description = "",
-                        maxSuggestions = "10",
-                        priority = "100",
-                        validFrom = "",
-                        validTo = "",
-                        isActive = true,
-                        analyticsLocked = false,
-                        items = listOf(RuleItemDraft(productId = "", score = "", isActive = true)),
-                    )
+                    draft =
+                        CrossSellDraft(
+                            id = 0,
+                            sourceType = "analytics",
+                            triggerType = "product",
+                            triggerProductId = "",
+                            triggerCategoryId = "",
+                            name = "",
+                            description = "",
+                            maxSuggestions = "10",
+                            priority = "100",
+                            validFrom = "",
+                            validTo = "",
+                            isActive = true,
+                            analyticsLocked = false,
+                            items = listOf(RuleItemDraft(productId = "", score = "", isActive = true)),
+                        )
                 }) { Text(tr("Add", "Agregar")) }
             }
         }
 
         when {
-            state.isLoading -> Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                CircularProgressIndicator()
+            state.isLoading -> {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    CircularProgressIndicator()
+                }
             }
 
-            state.error != null -> Text(state.error, color = MaterialTheme.colorScheme.error)
-            state.rules.isEmpty() -> Text(tr("No cross-sell rules.", "No hay reglas cross-sell."))
-            else -> LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                itemsIndexed(state.rules, key = { _, item -> item.id }) { _, rule ->
-                    Column(modifier = Modifier.fillMaxWidth().padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("#${rule.id} ${rule.name}", fontWeight = FontWeight.SemiBold)
-                        Text("${tr("Source", "Fuente")}: ${rule.sourceType}")
-                        Text("${tr("Trigger", "Disparador")}: ${rule.triggerType}")
-                        Text("${tr("Items", "Items")}: ${rule.items.size}")
-                        Text("${tr("Priority", "Prioridad")}: ${rule.priority}")
-                        Text("${tr("Active", "Activo")}: ${if (rule.isActive == 1) tr("Yes", "Si") else tr("No", "No")}")
+            state.error != null -> {
+                Text(state.error, color = MaterialTheme.colorScheme.error)
+            }
 
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            if (rule.sourceType == "analytics" && rule.triggerProductId != null) {
-                                TextButton(onClick = {
-                                    viewModel.recomputeAnalytics(rule.triggerProductId)
-                                }) {
-                                    Text(tr("Recompute", "Recalcular"))
+            state.rules.isEmpty() -> {
+                Text(tr("No cross-sell rules.", "No hay reglas cross-sell."))
+            }
+
+            else -> {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    itemsIndexed(state.rules, key = { _, item -> item.id }) { _, rule ->
+                        Column(modifier = Modifier.fillMaxWidth().padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("#${rule.id} ${rule.name}", fontWeight = FontWeight.SemiBold)
+                            Text("${tr("Source", "Fuente")}: ${rule.sourceType}")
+                            Text("${tr("Trigger", "Disparador")}: ${rule.triggerType}")
+                            Text("${tr("Items", "Items")}: ${rule.items.size}")
+                            Text("${tr("Priority", "Prioridad")}: ${rule.priority}")
+                            Text("${tr("Active", "Activo")}: ${if (rule.isActive == 1) tr("Yes", "Si") else tr("No", "No")}")
+
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                if (rule.sourceType == "analytics" && rule.triggerProductId != null) {
+                                    TextButton(onClick = {
+                                        viewModel.recomputeAnalytics(rule.triggerProductId)
+                                    }) {
+                                        Text(tr("Recompute", "Recalcular"))
+                                    }
                                 }
+
+                                TextButton(onClick = {
+                                    draft =
+                                        CrossSellDraft(
+                                            id = rule.id,
+                                            sourceType = rule.sourceType,
+                                            triggerType = rule.triggerType,
+                                            triggerProductId = rule.triggerProductId?.toString().orEmpty(),
+                                            triggerCategoryId = rule.triggerCategoryId.orEmpty(),
+                                            name = rule.name,
+                                            description = rule.description.orEmpty(),
+                                            maxSuggestions = rule.maxSuggestions.toString(),
+                                            priority = rule.priority.toString(),
+                                            validFrom = rule.validFrom.orEmpty(),
+                                            validTo = rule.validTo.orEmpty(),
+                                            isActive = rule.isActive == 1,
+                                            analyticsLocked = (rule.isLocked ?: 0) == 1,
+                                            items = (
+                                                if (rule.items.isEmpty()) {
+                                                    listOf(RuleItemDraft(productId = "", score = "", isActive = true))
+                                                } else {
+                                                    rule.items.map { item ->
+                                                        RuleItemDraft(
+                                                            productId = item.productId.toString(),
+                                                            score = item.score?.toString().orEmpty(),
+                                                            isActive = item.isActive == 1,
+                                                        )
+                                                    }
+                                                }
+                                            ),
+                                        )
+                                }) { Text(tr("Edit", "Editar")) }
+
+                                TextButton(onClick = {
+                                    viewModel.deleteRule(rule.id)
+                                }) { Text(tr("Delete", "Eliminar"), color = MaterialTheme.colorScheme.error) }
                             }
-
-                            TextButton(onClick = {
-                                draft = CrossSellDraft(
-                                    id = rule.id,
-                                    sourceType = rule.sourceType,
-                                    triggerType = rule.triggerType,
-                                    triggerProductId = rule.triggerProductId?.toString().orEmpty(),
-                                    triggerCategoryId = rule.triggerCategoryId.orEmpty(),
-                                    name = rule.name,
-                                    description = rule.description.orEmpty(),
-                                    maxSuggestions = rule.maxSuggestions.toString(),
-                                    priority = rule.priority.toString(),
-                                    validFrom = rule.validFrom.orEmpty(),
-                                    validTo = rule.validTo.orEmpty(),
-                                    isActive = rule.isActive == 1,
-                                    analyticsLocked = (rule.isLocked ?: 0) == 1,
-                                    items = (if (rule.items.isEmpty()) {
-                                        listOf(RuleItemDraft(productId = "", score = "", isActive = true))
-                                    } else {
-                                        rule.items.map { item ->
-                                            RuleItemDraft(
-                                                productId = item.productId.toString(),
-                                                score = item.score?.toString().orEmpty(),
-                                                isActive = item.isActive == 1,
-                                            )
-                                        }
-                                    }),
-                                )
-                            }) { Text(tr("Edit", "Editar")) }
-
-                            TextButton(onClick = {
-                                viewModel.deleteRule(rule.id)
-                            }) { Text(tr("Delete", "Eliminar"), color = MaterialTheme.colorScheme.error) }
                         }
                     }
                 }
@@ -179,7 +194,15 @@ fun AdminManageCrossSellScreen(
         AlertDialog(
             onDismissRequest = { draft = null },
             title = {
-                Text(if (activeDraft.id == 0) tr("Add Cross-Sell Rule", "Agregar regla cross-sell") else tr("Edit Cross-Sell Rule", "Editar regla cross-sell"))
+                Text(
+                    if (activeDraft.id ==
+                        0
+                    ) {
+                        tr("Add Cross-Sell Rule", "Agregar regla cross-sell")
+                    } else {
+                        tr("Edit Cross-Sell Rule", "Editar regla cross-sell")
+                    },
+                )
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -224,7 +247,7 @@ fun AdminManageCrossSellScreen(
                                             activeDraft.triggerCategoryId = ""
                                         }
                                         draft = activeDraft.copy()
-                                    }
+                                    },
                                 )
                             }
                         }
@@ -249,7 +272,7 @@ fun AdminManageCrossSellScreen(
                                             triggerExpanded = false
                                             activeDraft.triggerType = option
                                             draft = activeDraft.copy()
-                                        }
+                                        },
                                     )
                                 }
                             }
@@ -276,7 +299,7 @@ fun AdminManageCrossSellScreen(
                                             productExpanded = false
                                             activeDraft.triggerProductId = product.id.toString()
                                             draft = activeDraft.copy()
-                                        }
+                                        },
                                     )
                                 }
                             }
@@ -284,7 +307,7 @@ fun AdminManageCrossSellScreen(
                     } else {
                         var categoryExpanded by remember(activeDraft.id) { mutableStateOf(false) }
                         ExposedDropdownMenuBox(expanded = categoryExpanded, onExpandedChange = { categoryExpanded = !categoryExpanded }) {
-                                val selected = categoryOptions.firstOrNull { it.id == activeDraft.triggerCategoryId }
+                            val selected = categoryOptions.firstOrNull { it.id == activeDraft.triggerCategoryId }
                             OutlinedTextField(
                                 value = selected?.label ?: tr("Select category", "Selecciona categoria"),
                                 onValueChange = {},
@@ -301,7 +324,7 @@ fun AdminManageCrossSellScreen(
                                             categoryExpanded = false
                                             activeDraft.triggerCategoryId = option.id
                                             draft = activeDraft.copy()
-                                        }
+                                        },
                                     )
                                 }
                             }
@@ -373,7 +396,10 @@ fun AdminManageCrossSellScreen(
                     activeDraft.items.forEachIndexed { index, item ->
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(vertical = 4.dp)) {
                             var itemProductExpanded by remember(activeDraft.id, index) { mutableStateOf(false) }
-                            ExposedDropdownMenuBox(expanded = itemProductExpanded, onExpandedChange = { itemProductExpanded = !itemProductExpanded }) {
+                            ExposedDropdownMenuBox(expanded = itemProductExpanded, onExpandedChange = {
+                                itemProductExpanded =
+                                    !itemProductExpanded
+                            }) {
                                 val selected = state.products.firstOrNull { it.id.toString() == item.productId }
                                 OutlinedTextField(
                                     value = selected?.localizedName(languageCode) ?: tr("Select product", "Selecciona producto"),
@@ -384,16 +410,17 @@ fun AdminManageCrossSellScreen(
                                     modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
                                 )
                                 ExposedDropdownMenu(expanded = itemProductExpanded, onDismissRequest = { itemProductExpanded = false }) {
-                                state.products.sortedBy { it.localizedName(languageCode) }.forEach { product ->
+                                    state.products.sortedBy { it.localizedName(languageCode) }.forEach { product ->
                                         DropdownMenuItem(
                                             text = { Text("${product.localizedName(languageCode)} (${product.slug})") },
                                             onClick = {
                                                 itemProductExpanded = false
-                                                activeDraft.items = activeDraft.items.toMutableList().also {
-                                                    it[index] = it[index].copy(productId = product.id.toString())
-                                                }
+                                                activeDraft.items =
+                                                    activeDraft.items.toMutableList().also {
+                                                        it[index] = it[index].copy(productId = product.id.toString())
+                                                    }
                                                 draft = activeDraft.copy()
-                                            }
+                                            },
                                         )
                                     }
                                 }
@@ -402,9 +429,10 @@ fun AdminManageCrossSellScreen(
                             OutlinedTextField(
                                 value = item.score,
                                 onValueChange = { newScore ->
-                                    activeDraft.items = activeDraft.items.toMutableList().also {
-                                        it[index] = it[index].copy(score = newScore)
-                                    }
+                                    activeDraft.items =
+                                        activeDraft.items.toMutableList().also {
+                                            it[index] = it[index].copy(score = newScore)
+                                        }
                                     draft = activeDraft.copy()
                                 },
                                 label = { Text(tr("Score (optional)", "Score (opcional)")) },
@@ -415,9 +443,10 @@ fun AdminManageCrossSellScreen(
                                 Switch(
                                     checked = item.isActive,
                                     onCheckedChange = { checked ->
-                                        activeDraft.items = activeDraft.items.toMutableList().also {
-                                            it[index] = it[index].copy(isActive = checked)
-                                        }
+                                        activeDraft.items =
+                                            activeDraft.items.toMutableList().also {
+                                                it[index] = it[index].copy(isActive = checked)
+                                            }
                                         draft = activeDraft.copy()
                                     },
                                 )
@@ -464,34 +493,43 @@ fun AdminManageCrossSellScreen(
                     val triggerProductId = activeDraft.triggerProductId.toIntOrNull()
                     val maxSuggestions = activeDraft.maxSuggestions.toIntOrNull() ?: 10
                     val priority = activeDraft.priority.toIntOrNull() ?: 100
-                    val items = activeDraft.items.mapIndexedNotNull { index, item ->
-                        val itemProductId = item.productId.toIntOrNull() ?: return@mapIndexedNotNull null
-                        AdminCrossSellRuleUpsertItemDto(
-                            productId = itemProductId,
-                            sortOrder = index,
-                            score = item.score.toDoubleOrNull(),
-                            isActive = if (item.isActive) 1 else 0,
-                        )
-                    }
+                    val items =
+                        activeDraft.items.mapIndexedNotNull { index, item ->
+                            val itemProductId = item.productId.toIntOrNull() ?: return@mapIndexedNotNull null
+                            AdminCrossSellRuleUpsertItemDto(
+                                productId = itemProductId,
+                                sortOrder = index,
+                                score = item.score.toDoubleOrNull(),
+                                isActive = if (item.isActive) 1 else 0,
+                            )
+                        }
                     if (items.isEmpty()) {
                         viewModel.setError(tr("At least one item is required", "Se requiere al menos un item"))
                         return@TextButton
                     }
 
-                    val payload = AdminCrossSellRuleUpsertRequestDto(
-                        sourceType = activeDraft.sourceType,
-                        triggerType = activeDraft.triggerType,
-                        triggerProductId = if (activeDraft.triggerType == "product") triggerProductId else null,
-                        triggerCategoryId = if (activeDraft.triggerType == "category") activeDraft.triggerCategoryId.ifBlank { null } else null,
-                        name = activeDraft.name.trim(),
-                        description = activeDraft.description.trim().ifBlank { null },
-                        maxSuggestions = maxSuggestions,
-                        priority = priority,
-                        isActive = if (activeDraft.isActive) 1 else 0,
-                        validFrom = activeDraft.validFrom.ifBlank { null },
-                        validTo = activeDraft.validTo.ifBlank { null },
-                        items = items,
-                    )
+                    val payload =
+                        AdminCrossSellRuleUpsertRequestDto(
+                            sourceType = activeDraft.sourceType,
+                            triggerType = activeDraft.triggerType,
+                            triggerProductId = if (activeDraft.triggerType == "product") triggerProductId else null,
+                            triggerCategoryId =
+                                if (activeDraft.triggerType ==
+                                    "category"
+                                ) {
+                                    activeDraft.triggerCategoryId.ifBlank { null }
+                                } else {
+                                    null
+                                },
+                            name = activeDraft.name.trim(),
+                            description = activeDraft.description.trim().ifBlank { null },
+                            maxSuggestions = maxSuggestions,
+                            priority = priority,
+                            isActive = if (activeDraft.isActive) 1 else 0,
+                            validFrom = activeDraft.validFrom.ifBlank { null },
+                            validTo = activeDraft.validTo.ifBlank { null },
+                            items = items,
+                        )
 
                     viewModel.saveRule(
                         ruleId = activeDraft.id,

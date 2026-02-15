@@ -15,8 +15,8 @@ data class CartSnapshot(
 class ObserveCartUseCase(
     private val repository: CartRepository,
 ) {
-    operator fun invoke(): Flow<CartSnapshot> {
-        return repository.observeItems().map { items ->
+    operator fun invoke(): Flow<CartSnapshot> =
+        repository.observeItems().map { items ->
             val subtotal = items.sumOf { it.finalPrice * it.quantity }
             val totalItems = items.sumOf { it.quantity }
             CartSnapshot(
@@ -25,5 +25,4 @@ class ObserveCartUseCase(
                 totalItems = totalItems,
             )
         }
-    }
 }

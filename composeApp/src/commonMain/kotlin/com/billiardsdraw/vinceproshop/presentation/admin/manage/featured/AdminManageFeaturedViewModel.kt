@@ -42,18 +42,20 @@ class AdminManageFeaturedViewModel(
             runCatching {
                 Triple(adminApi.featured(), catalogApi.getProducts(), adminApi.categories())
             }.onSuccess { (featured, products, categories) ->
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    error = null,
-                    featured = featured,
-                    products = products,
-                    categories = categories,
-                )
+                _state.value =
+                    _state.value.copy(
+                        isLoading = false,
+                        error = null,
+                        featured = featured,
+                        products = products,
+                        categories = categories,
+                    )
             }.onFailure { throwable ->
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    error = throwable.message ?: tr("Could not load featured items", "No se pudo cargar destacados"),
-                )
+                _state.value =
+                    _state.value.copy(
+                        isLoading = false,
+                        error = throwable.message ?: tr("Could not load featured items", "No se pudo cargar destacados"),
+                    )
             }
         }
     }
@@ -62,29 +64,35 @@ class AdminManageFeaturedViewModel(
         viewModelScope.launch(dispatchers.io) {
             runCatching { adminApi.deleteFeatured(id) }
                 .onFailure { throwable ->
-                    _state.value = _state.value.copy(
-                        error = throwable.message ?: tr("Delete failed", "No se pudo eliminar"),
-                    )
+                    _state.value =
+                        _state.value.copy(
+                            error = throwable.message ?: tr("Delete failed", "No se pudo eliminar"),
+                        )
                 }
             refresh()
         }
     }
 
-    fun saveFeatured(featuredId: Int, payload: AdminFeaturedUpsertRequestDto) {
+    fun saveFeatured(
+        featuredId: Int,
+        payload: AdminFeaturedUpsertRequestDto,
+    ) {
         _state.value = _state.value.copy(isSaving = true)
         viewModelScope.launch(dispatchers.io) {
-            val result = runCatching {
-                if (featuredId == 0) {
-                    adminApi.createFeatured(payload)
-                } else {
-                    adminApi.updateFeatured(featuredId, payload)
+            val result =
+                runCatching {
+                    if (featuredId == 0) {
+                        adminApi.createFeatured(payload)
+                    } else {
+                        adminApi.updateFeatured(featuredId, payload)
+                    }
                 }
-            }
             if (result.isFailure) {
-                _state.value = _state.value.copy(
-                    isSaving = false,
-                    error = result.exceptionOrNull()?.message ?: tr("Save failed", "No se pudo guardar"),
-                )
+                _state.value =
+                    _state.value.copy(
+                        isSaving = false,
+                        error = result.exceptionOrNull()?.message ?: tr("Save failed", "No se pudo guardar"),
+                    )
                 return@launch
             }
             _state.value = _state.value.copy(isSaving = false, error = null)
@@ -92,4 +100,3 @@ class AdminManageFeaturedViewModel(
         }
     }
 }
-

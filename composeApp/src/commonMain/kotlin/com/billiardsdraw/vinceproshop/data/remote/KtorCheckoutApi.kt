@@ -16,20 +16,21 @@ class KtorCheckoutApi(
     private val baseUrl: String,
     private val tokenStore: AuthTokenStore,
 ) : CheckoutApi {
-
     override suspend fun createPaymentIntent(request: CreatePaymentIntentRequestDto): CreatePaymentIntentResponseDto {
         val token = tokenStore.readToken()
-        val response = httpClient.post(url()) {
-            applyAuthHeaders(token)
-            contentType(ContentType.Application.Json)
-            setBody(request)
-        }
+        val response =
+            httpClient.post(url()) {
+                applyAuthHeaders(token)
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }
 
         if (!response.status.isSuccess()) {
             val apiError = runCatching { response.body<ApiErrorDto>() }.getOrNull()
-            val message = apiError?.error
-                ?: apiError?.message
-                ?: "Failed to create payment intent (${response.status.value})"
+            val message =
+                apiError?.error
+                    ?: apiError?.message
+                    ?: "Failed to create payment intent (${response.status.value})"
             throw IllegalStateException(message)
         }
 

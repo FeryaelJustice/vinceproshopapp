@@ -32,22 +32,20 @@ data class CheckoutPaymentIntent(
     val amount: Double,
 )
 
-fun CheckoutCustomerInfo.isValid(): Boolean {
-    return name.isNotBlank() &&
+fun CheckoutCustomerInfo.isValid(): Boolean =
+    name.isNotBlank() &&
         email.isNotBlank() &&
         address.isNotBlank() &&
         city.isNotBlank() &&
         zipCode.isNotBlank() &&
         country.isNotBlank() &&
         phone.isNotBlank()
-}
 
-fun CheckoutCustomerInfo.fullAddress(): String {
-    return listOf(address, city, zipCode)
+fun CheckoutCustomerInfo.fullAddress(): String =
+    listOf(address, city, zipCode)
         .map { it.trim() }
         .filter { it.isNotBlank() }
         .joinToString(", ")
-}
 
 fun paymentIntentIdFromClientSecret(clientSecret: String): String {
     val trimmed = clientSecret.trim()

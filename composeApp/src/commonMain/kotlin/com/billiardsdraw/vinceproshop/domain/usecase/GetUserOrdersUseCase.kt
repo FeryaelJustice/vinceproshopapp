@@ -6,7 +6,5 @@ import com.billiardsdraw.vinceproshop.domain.repository.AccountRepository
 class GetUserOrdersUseCase(
     private val repository: AccountRepository,
 ) {
-    suspend operator fun invoke(): List<Order> {
-        return repository.getUserOrders()
-    }
+    suspend operator fun invoke(): List<Order> = repository.getUserOrders()
 }

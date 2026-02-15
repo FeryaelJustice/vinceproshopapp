@@ -37,30 +37,35 @@ class AdminManageCategoriesViewModel(
             _state.value = _state.value.copy(isLoading = true)
             runCatching { Pair(adminApi.categories(), adminApi.navbarConfig()) }
                 .onSuccess { (categories, navbar) ->
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        error = null,
-                        categories = categories,
-                        navbarLimit = navbar.rootVisibleLimit,
-                        navbarRootOrder = navbar.rootCategories.map { it.id },
-                    )
-                }
-                .onFailure { throwable ->
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        error = throwable.message ?: tr("Could not load categories", "No se pudieron cargar categorias"),
-                    )
+                    _state.value =
+                        _state.value.copy(
+                            isLoading = false,
+                            error = null,
+                            categories = categories,
+                            navbarLimit = navbar.rootVisibleLimit,
+                            navbarRootOrder = navbar.rootCategories.map { it.id },
+                        )
+                }.onFailure { throwable ->
+                    _state.value =
+                        _state.value.copy(
+                            isLoading = false,
+                            error = throwable.message ?: tr("Could not load categories", "No se pudieron cargar categorias"),
+                        )
                 }
         }
     }
 
-    fun saveNavbar(limit: Int, orderedRootIds: List<String>) {
+    fun saveNavbar(
+        limit: Int,
+        orderedRootIds: List<String>,
+    ) {
         viewModelScope.launch(dispatchers.io) {
             runCatching { adminApi.updateNavbarConfig(limit, orderedRootIds) }
                 .onFailure { throwable ->
-                    _state.value = _state.value.copy(
-                        error = throwable.message ?: tr("Navbar update failed", "No se pudo actualizar navbar"),
-                    )
+                    _state.value =
+                        _state.value.copy(
+                            error = throwable.message ?: tr("Navbar update failed", "No se pudo actualizar navbar"),
+                        )
                 }
             refresh()
         }
@@ -70,9 +75,10 @@ class AdminManageCategoriesViewModel(
         viewModelScope.launch(dispatchers.io) {
             runCatching { adminApi.deleteCategory(categoryId) }
                 .onFailure { throwable ->
-                    _state.value = _state.value.copy(
-                        error = throwable.message ?: tr("Delete failed", "No se pudo eliminar"),
-                    )
+                    _state.value =
+                        _state.value.copy(
+                            error = throwable.message ?: tr("Delete failed", "No se pudo eliminar"),
+                        )
                 }
             refresh()
         }
@@ -89,33 +95,35 @@ class AdminManageCategoriesViewModel(
     ) {
         _state.value = _state.value.copy(isSaving = true)
         viewModelScope.launch(dispatchers.io) {
-            val result = runCatching {
-                if (createMode) {
-                    val upload = image ?: throw IllegalArgumentException(tr("Image is required", "Imagen requerida"))
-                    adminApi.createCategory(
-                        id = id,
-                        name = name,
-                        nameEs = nameEs,
-                        isCue = isCue,
-                        parentId = parentId,
-                        image = upload,
-                    )
-                } else {
-                    adminApi.updateCategory(
-                        id = id,
-                        name = name,
-                        nameEs = nameEs,
-                        isCue = isCue,
-                        parentId = parentId,
-                        image = image,
-                    )
+            val result =
+                runCatching {
+                    if (createMode) {
+                        val upload = image ?: throw IllegalArgumentException(tr("Image is required", "Imagen requerida"))
+                        adminApi.createCategory(
+                            id = id,
+                            name = name,
+                            nameEs = nameEs,
+                            isCue = isCue,
+                            parentId = parentId,
+                            image = upload,
+                        )
+                    } else {
+                        adminApi.updateCategory(
+                            id = id,
+                            name = name,
+                            nameEs = nameEs,
+                            isCue = isCue,
+                            parentId = parentId,
+                            image = image,
+                        )
+                    }
                 }
-            }
             if (result.isFailure) {
-                _state.value = _state.value.copy(
-                    isSaving = false,
-                    error = result.exceptionOrNull()?.message ?: tr("Save failed", "No se pudo guardar"),
-                )
+                _state.value =
+                    _state.value.copy(
+                        isSaving = false,
+                        error = result.exceptionOrNull()?.message ?: tr("Save failed", "No se pudo guardar"),
+                    )
                 return@launch
             }
             _state.value = _state.value.copy(isSaving = false, error = null)
@@ -123,4 +131,3 @@ class AdminManageCategoriesViewModel(
         }
     }
 }
-

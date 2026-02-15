@@ -40,19 +40,20 @@ class AdminManageInventoryViewModel(
             _state.value = _state.value.copy(isLoading = true)
             runCatching { Triple(adminApi.inventory(), adminApi.sizes(), adminApi.categories()) }
                 .onSuccess { (products, sizes, categories) ->
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        error = null,
-                        products = products,
-                        sizes = sizes,
-                        categories = categories,
-                    )
-                }
-                .onFailure { throwable ->
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        error = throwable.message ?: tr("Could not load inventory", "No se pudo cargar inventario"),
-                    )
+                    _state.value =
+                        _state.value.copy(
+                            isLoading = false,
+                            error = null,
+                            products = products,
+                            sizes = sizes,
+                            categories = categories,
+                        )
+                }.onFailure { throwable ->
+                    _state.value =
+                        _state.value.copy(
+                            isLoading = false,
+                            error = throwable.message ?: tr("Could not load inventory", "No se pudo cargar inventario"),
+                        )
                 }
         }
     }
@@ -61,9 +62,10 @@ class AdminManageInventoryViewModel(
         viewModelScope.launch(dispatchers.io) {
             runCatching { adminApi.discontinueInventoryProduct(productId) }
                 .onFailure { throwable ->
-                    _state.value = _state.value.copy(
-                        error = throwable.message ?: tr("Discontinue failed", "No se pudo descontinuar"),
-                    )
+                    _state.value =
+                        _state.value.copy(
+                            error = throwable.message ?: tr("Discontinue failed", "No se pudo descontinuar"),
+                        )
                 }
             refresh()
         }
@@ -76,18 +78,20 @@ class AdminManageInventoryViewModel(
     ) {
         _state.value = _state.value.copy(isSaving = true)
         viewModelScope.launch(dispatchers.io) {
-            val result = runCatching {
-                if (productId == 0) {
-                    adminApi.createInventoryProduct(payload = payload, images = uploads)
-                } else {
-                    adminApi.updateInventoryProduct(productId = productId, payload = payload, images = uploads)
+            val result =
+                runCatching {
+                    if (productId == 0) {
+                        adminApi.createInventoryProduct(payload = payload, images = uploads)
+                    } else {
+                        adminApi.updateInventoryProduct(productId = productId, payload = payload, images = uploads)
+                    }
                 }
-            }
             if (result.isFailure) {
-                _state.value = _state.value.copy(
-                    isSaving = false,
-                    error = result.exceptionOrNull()?.message ?: tr("Save failed", "No se pudo guardar"),
-                )
+                _state.value =
+                    _state.value.copy(
+                        isSaving = false,
+                        error = result.exceptionOrNull()?.message ?: tr("Save failed", "No se pudo guardar"),
+                    )
                 return@launch
             }
             _state.value = _state.value.copy(isSaving = false, error = null)
@@ -95,4 +99,3 @@ class AdminManageInventoryViewModel(
         }
     }
 }
-

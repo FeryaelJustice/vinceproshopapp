@@ -14,12 +14,11 @@ data class CatalogFeed(
 class ObserveCatalogUseCase(
     private val repository: CatalogRepository,
 ) {
-    operator fun invoke(): Flow<CatalogFeed> {
-        return combine(
+    operator fun invoke(): Flow<CatalogFeed> =
+        combine(
             repository.observeProducts(),
             repository.observeCategories(),
         ) { products, categories ->
             CatalogFeed(products = products, categories = categories)
         }
-    }
 }

@@ -36,17 +36,18 @@ class AdminManageSizesViewModel(
             _state.value = _state.value.copy(isLoading = true)
             runCatching { adminApi.sizes() }
                 .onSuccess { sizes ->
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        error = null,
-                        sizes = sizes,
-                    )
-                }
-                .onFailure { throwable ->
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        error = throwable.message ?: tr("Could not load sizes", "No se pudieron cargar tallas"),
-                    )
+                    _state.value =
+                        _state.value.copy(
+                            isLoading = false,
+                            error = null,
+                            sizes = sizes,
+                        )
+                }.onFailure { throwable ->
+                    _state.value =
+                        _state.value.copy(
+                            isLoading = false,
+                            error = throwable.message ?: tr("Could not load sizes", "No se pudieron cargar tallas"),
+                        )
                 }
         }
     }
@@ -71,9 +72,10 @@ class AdminManageSizesViewModel(
         viewModelScope.launch(dispatchers.io) {
             runCatching { adminApi.deleteSize(sizeId) }
                 .onFailure { throwable ->
-                    _state.value = _state.value.copy(
-                        error = throwable.message ?: tr("Delete failed", "No se pudo eliminar"),
-                    )
+                    _state.value =
+                        _state.value.copy(
+                            error = throwable.message ?: tr("Delete failed", "No se pudo eliminar"),
+                        )
                 }
             refresh()
         }
@@ -89,18 +91,20 @@ class AdminManageSizesViewModel(
         }
         _state.value = current.copy(isSaving = true)
         viewModelScope.launch(dispatchers.io) {
-            val result = runCatching {
-                if (target.id == 0) {
-                    adminApi.createSize(cleanName)
-                } else {
-                    adminApi.updateSize(target.id, cleanName)
+            val result =
+                runCatching {
+                    if (target.id == 0) {
+                        adminApi.createSize(cleanName)
+                    } else {
+                        adminApi.updateSize(target.id, cleanName)
+                    }
                 }
-            }
             if (result.isFailure) {
-                _state.value = _state.value.copy(
-                    isSaving = false,
-                    error = result.exceptionOrNull()?.message ?: tr("Save failed", "No se pudo guardar"),
-                )
+                _state.value =
+                    _state.value.copy(
+                        isSaving = false,
+                        error = result.exceptionOrNull()?.message ?: tr("Save failed", "No se pudo guardar"),
+                    )
                 return@launch
             }
             _state.value = _state.value.copy(isSaving = false, editing = null, draftName = "", error = null)
@@ -108,4 +112,3 @@ class AdminManageSizesViewModel(
         }
     }
 }
-

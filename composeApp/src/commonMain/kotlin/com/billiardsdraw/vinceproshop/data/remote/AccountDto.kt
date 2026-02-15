@@ -72,7 +72,10 @@ object LenientDoubleSerializer : KSerializer<Double> {
         return parseToDouble(jsonDecoder.decodeJsonElement())
     }
 
-    override fun serialize(encoder: Encoder, value: Double) {
+    override fun serialize(
+        encoder: Encoder,
+        value: Double,
+    ) {
         encoder.encodeDouble(value)
     }
 }
@@ -86,7 +89,10 @@ object LenientIntSerializer : KSerializer<Int> {
         return parseToInt(jsonDecoder.decodeJsonElement())
     }
 
-    override fun serialize(encoder: Encoder, value: Int) {
+    override fun serialize(
+        encoder: Encoder,
+        value: Int,
+    ) {
         encoder.encodeInt(value)
     }
 }

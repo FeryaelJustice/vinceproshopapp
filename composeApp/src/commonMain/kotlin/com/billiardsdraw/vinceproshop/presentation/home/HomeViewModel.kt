@@ -24,7 +24,6 @@ class HomeViewModel(
     observeHomeFeed: ObserveHomeFeedUseCase,
     private val dispatchers: DispatchersProvider,
 ) : ViewModel() {
-
     private val _state = MutableStateFlow(HomeUiState())
     val state: StateFlow<HomeUiState> = _state.asStateFlow()
 
@@ -32,21 +31,23 @@ class HomeViewModel(
         viewModelScope.launch(dispatchers.io) {
             runCatching { refreshCatalog() }
                 .onFailure { error ->
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        errorMessage = error.message,
-                    )
+                    _state.value =
+                        _state.value.copy(
+                            isLoading = false,
+                            errorMessage = error.message,
+                        )
                 }
         }
 
         viewModelScope.launch(dispatchers.main) {
             observeHomeFeed().collect { feed ->
-                _state.value = _state.value.copy(
-                    featuredSlides = feed.featured,
-                    quickViewProducts = feed.quickView,
-                    isLoading = false,
-                    errorMessage = null,
-                )
+                _state.value =
+                    _state.value.copy(
+                        featuredSlides = feed.featured,
+                        quickViewProducts = feed.quickView,
+                        isLoading = false,
+                        errorMessage = null,
+                    )
             }
         }
     }
@@ -56,10 +57,11 @@ class HomeViewModel(
         viewModelScope.launch(dispatchers.io) {
             runCatching { refreshCatalog() }
                 .onFailure { error ->
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        errorMessage = error.message,
-                    )
+                    _state.value =
+                        _state.value.copy(
+                            isLoading = false,
+                            errorMessage = error.message,
+                        )
                 }
         }
     }

@@ -5,9 +5,15 @@ import androidx.compose.ui.Modifier
 import com.billiardsdraw.vinceproshop.domain.model.CheckoutCustomerInfo
 
 sealed interface StripePaymentResult {
-    data class Completed(val paymentIntentId: String) : StripePaymentResult
+    data class Completed(
+        val paymentIntentId: String,
+    ) : StripePaymentResult
+
     data object Canceled : StripePaymentResult
-    data class Failed(val message: String) : StripePaymentResult
+
+    data class Failed(
+        val message: String,
+    ) : StripePaymentResult
 }
 
 @Composable

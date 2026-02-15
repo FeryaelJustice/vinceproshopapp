@@ -46,21 +46,24 @@ class AdminManageCrossSellViewModel(
             runCatching {
                 Triple(adminApi.crossSellRules("all"), catalogApi.getProducts(), catalogApi.getCategories())
             }.onSuccess { (rules, products, categories) ->
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    error = null,
-                    rules = rules,
-                    products = products,
-                    categories = categories,
-                )
+                _state.value =
+                    _state.value.copy(
+                        isLoading = false,
+                        error = null,
+                        rules = rules,
+                        products = products,
+                        categories = categories,
+                    )
             }.onFailure { throwable ->
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    error = throwable.message ?: tr(
-                        "Could not load cross-sell rules",
-                        "No se pudieron cargar reglas cross-sell",
-                    ),
-                )
+                _state.value =
+                    _state.value.copy(
+                        isLoading = false,
+                        error =
+                            throwable.message ?: tr(
+                                "Could not load cross-sell rules",
+                                "No se pudieron cargar reglas cross-sell",
+                            ),
+                    )
             }
         }
     }
@@ -69,9 +72,10 @@ class AdminManageCrossSellViewModel(
         viewModelScope.launch(dispatchers.io) {
             runCatching { adminApi.deleteCrossSellRule(ruleId) }
                 .onFailure { throwable ->
-                    _state.value = _state.value.copy(
-                        error = throwable.message ?: tr("Delete failed", "No se pudo eliminar"),
-                    )
+                    _state.value =
+                        _state.value.copy(
+                            error = throwable.message ?: tr("Delete failed", "No se pudo eliminar"),
+                        )
                 }
             refresh()
         }
@@ -81,9 +85,10 @@ class AdminManageCrossSellViewModel(
         viewModelScope.launch(dispatchers.io) {
             runCatching { adminApi.recomputeCrossSellAnalytics(productId) }
                 .onFailure { throwable ->
-                    _state.value = _state.value.copy(
-                        error = throwable.message ?: tr("Recompute failed", "No se pudo recalcular"),
-                    )
+                    _state.value =
+                        _state.value.copy(
+                            error = throwable.message ?: tr("Recompute failed", "No se pudo recalcular"),
+                        )
                 }
             refresh()
         }
@@ -97,24 +102,26 @@ class AdminManageCrossSellViewModel(
     ) {
         _state.value = _state.value.copy(isSaving = true)
         viewModelScope.launch(dispatchers.io) {
-            val result = runCatching {
-                if (ruleId == 0) {
-                    adminApi.createCrossSellRule(payload)
-                } else {
-                    adminApi.updateCrossSellRule(ruleId, payload)
+            val result =
+                runCatching {
+                    if (ruleId == 0) {
+                        adminApi.createCrossSellRule(payload)
+                    } else {
+                        adminApi.updateCrossSellRule(ruleId, payload)
+                    }
+                    if (payload.sourceType == "analytics" && analyticsControlProductId != null) {
+                        adminApi.updateCrossSellAnalyticsControl(
+                            productId = analyticsControlProductId,
+                            isLocked = analyticsLocked,
+                        )
+                    }
                 }
-                if (payload.sourceType == "analytics" && analyticsControlProductId != null) {
-                    adminApi.updateCrossSellAnalyticsControl(
-                        productId = analyticsControlProductId,
-                        isLocked = analyticsLocked,
-                    )
-                }
-            }
             if (result.isFailure) {
-                _state.value = _state.value.copy(
-                    isSaving = false,
-                    error = result.exceptionOrNull()?.message ?: tr("Save failed", "No se pudo guardar"),
-                )
+                _state.value =
+                    _state.value.copy(
+                        isSaving = false,
+                        error = result.exceptionOrNull()?.message ?: tr("Save failed", "No se pudo guardar"),
+                    )
                 return@launch
             }
             _state.value = _state.value.copy(isSaving = false, error = null)

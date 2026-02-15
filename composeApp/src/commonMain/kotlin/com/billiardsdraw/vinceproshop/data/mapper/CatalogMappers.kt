@@ -38,22 +38,19 @@ fun ProductDto.toDomain(apiBaseUrl: String): Product {
     )
 }
 
-fun ProductOptionDto.toDomain(): ProductOption {
-    return ProductOption(
+fun ProductOptionDto.toDomain(): ProductOption =
+    ProductOption(
         label = label,
         value = value,
         quantity = quantity ?: 0,
         price = price ?: 0.0,
         discount = discount ?: 0.0,
     )
-}
 
-fun ProductMediaDto.toDomain(apiBaseUrl: String): ProductMedia {
-    return ProductMedia(url = resolveAssetUrl(url, apiBaseUrl))
-}
+fun ProductMediaDto.toDomain(apiBaseUrl: String): ProductMedia = ProductMedia(url = resolveAssetUrl(url, apiBaseUrl))
 
-fun CategoryDto.toDomain(apiBaseUrl: String): Category {
-    return Category(
+fun CategoryDto.toDomain(apiBaseUrl: String): Category =
+    Category(
         id = id,
         name = name,
         nameEs = nameEs,
@@ -61,10 +58,9 @@ fun CategoryDto.toDomain(apiBaseUrl: String): Category {
         parentId = parentId,
         isCue = (isCue ?: 0) == 1,
     )
-}
 
-fun FeaturedSlideDto.toDomain(apiBaseUrl: String): FeaturedSlide {
-    return FeaturedSlide(
+fun FeaturedSlideDto.toDomain(apiBaseUrl: String): FeaturedSlide =
+    FeaturedSlide(
         id = id,
         targetType = targetType,
         productId = productId,
@@ -80,10 +76,9 @@ fun FeaturedSlideDto.toDomain(apiBaseUrl: String): FeaturedSlide {
         sortOrder = sortOrder,
         isActive = isActive == 1,
     )
-}
 
-fun Product.toEntity(json: Json): ProductEntity {
-    return ProductEntity(
+fun Product.toEntity(json: Json): ProductEntity =
+    ProductEntity(
         slug = slug,
         payloadJson = json.encodeToString(Product.serializer(), this),
         name = name,
@@ -95,10 +90,9 @@ fun Product.toEntity(json: Json): ProductEntity {
         inStock = inStock,
         updatedAtEpochMs = 0L,
     )
-}
 
-fun ProductEntity.toDomain(json: Json): Product {
-    return runCatching {
+fun ProductEntity.toDomain(json: Json): Product =
+    runCatching {
         json.decodeFromString(Product.serializer(), payloadJson)
     }.getOrElse {
         Product(
@@ -118,10 +112,9 @@ fun ProductEntity.toDomain(json: Json): Product {
             options = emptyList(),
         )
     }
-}
 
-fun Category.toEntity(): CategoryEntity {
-    return CategoryEntity(
+fun Category.toEntity(): CategoryEntity =
+    CategoryEntity(
         id = id,
         name = name,
         nameEs = nameEs,
@@ -129,10 +122,9 @@ fun Category.toEntity(): CategoryEntity {
         parentId = parentId,
         isCue = isCue,
     )
-}
 
-fun CategoryEntity.toDomain(): Category {
-    return Category(
+fun CategoryEntity.toDomain(): Category =
+    Category(
         id = id,
         name = name,
         nameEs = nameEs,
@@ -140,23 +132,19 @@ fun CategoryEntity.toDomain(): Category {
         parentId = parentId,
         isCue = isCue,
     )
-}
 
-fun FeaturedSlide.toEntity(json: Json): FeaturedSlideEntity {
-    return FeaturedSlideEntity(
+fun FeaturedSlide.toEntity(json: Json): FeaturedSlideEntity =
+    FeaturedSlideEntity(
         id = id,
         payloadJson = json.encodeToString(FeaturedSlide.serializer(), this),
         sortOrder = sortOrder,
         isActive = isActive,
     )
-}
 
-fun FeaturedSlideEntity.toDomain(json: Json): FeaturedSlide {
-    return json.decodeFromString(FeaturedSlide.serializer(), payloadJson)
-}
+fun FeaturedSlideEntity.toDomain(json: Json): FeaturedSlide = json.decodeFromString(FeaturedSlide.serializer(), payloadJson)
 
-fun CartItemEntity.toDomain(): CartItem {
-    return CartItem(
+fun CartItemEntity.toDomain(): CartItem =
+    CartItem(
         slug = slug,
         size = size,
         quantity = quantity,
@@ -167,10 +155,9 @@ fun CartItemEntity.toDomain(): CartItem {
         discount = discount,
         originalPrice = originalPrice,
     )
-}
 
-fun CartItem.toEntity(): CartItemEntity {
-    return CartItemEntity(
+fun CartItem.toEntity(): CartItemEntity =
+    CartItemEntity(
         slug = slug,
         size = size,
         quantity = quantity,
@@ -181,9 +168,11 @@ fun CartItem.toEntity(): CartItemEntity {
         discount = discount,
         originalPrice = originalPrice,
     )
-}
 
-private fun resolveAssetUrl(raw: String, apiBaseUrl: String): String {
+private fun resolveAssetUrl(
+    raw: String,
+    apiBaseUrl: String,
+): String {
     if (raw.isBlank()) return raw
     if (!raw.startsWith("/")) return raw
     val root = apiBaseUrl.substringBefore("/api").trimEnd('/')

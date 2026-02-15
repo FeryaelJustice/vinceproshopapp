@@ -13,9 +13,19 @@ enum class RootSection {
 }
 
 sealed interface AppDestination {
-    data class Root(val section: RootSection) : AppDestination
-    data class ProductDetail(val slug: String, val source: RootSection) : AppDestination
-    data class AdminRoute(val route: String, val source: RootSection) : AppDestination
+    data class Root(
+        val section: RootSection,
+    ) : AppDestination
+
+    data class ProductDetail(
+        val slug: String,
+        val source: RootSection,
+    ) : AppDestination
+
+    data class AdminRoute(
+        val route: String,
+        val source: RootSection,
+    ) : AppDestination
 }
 
 class AppNavigator {
@@ -31,21 +41,23 @@ class AppNavigator {
     }
 
     fun openProduct(slug: String) {
-        val source = when (val destination = current) {
-            is AppDestination.Root -> destination.section
-            is AppDestination.ProductDetail -> destination.source
-            is AppDestination.AdminRoute -> destination.source
-        }
+        val source =
+            when (val destination = current) {
+                is AppDestination.Root -> destination.section
+                is AppDestination.ProductDetail -> destination.source
+                is AppDestination.AdminRoute -> destination.source
+            }
         backstack += AppDestination.ProductDetail(slug, source)
         current = backstack.last()
     }
 
     fun openAdmin(route: String) {
-        val source = when (val destination = current) {
-            is AppDestination.Root -> destination.section
-            is AppDestination.ProductDetail -> destination.source
-            is AppDestination.AdminRoute -> destination.source
-        }
+        val source =
+            when (val destination = current) {
+                is AppDestination.Root -> destination.section
+                is AppDestination.ProductDetail -> destination.source
+                is AppDestination.AdminRoute -> destination.source
+            }
         backstack += AppDestination.AdminRoute(route = route, source = source)
         current = backstack.last()
     }
@@ -67,11 +79,10 @@ class AppNavigator {
         }
     }
 
-    fun selectedSection(): RootSection {
-        return when (val destination = current) {
+    fun selectedSection(): RootSection =
+        when (val destination = current) {
             is AppDestination.Root -> destination.section
             is AppDestination.ProductDetail -> destination.source
             is AppDestination.AdminRoute -> destination.source
         }
-    }
 }

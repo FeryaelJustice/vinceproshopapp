@@ -3,21 +3,19 @@ package com.billiardsdraw.vinceproshop.presentation.admin
 import com.billiardsdraw.vinceproshop.data.remote.CategoryDto
 import com.billiardsdraw.vinceproshop.data.remote.ProductDto
 
-fun ProductDto.localizedName(languageCode: String): String {
-    return if (languageCode.startsWith("es", ignoreCase = true)) {
+fun ProductDto.localizedName(languageCode: String): String =
+    if (languageCode.startsWith("es", ignoreCase = true)) {
         nameEs.ifBlank { name }
     } else {
         name
     }
-}
 
-fun CategoryDto.localizedName(languageCode: String): String {
-    return if (languageCode.startsWith("es", ignoreCase = true)) {
+fun CategoryDto.localizedName(languageCode: String): String =
+    if (languageCode.startsWith("es", ignoreCase = true)) {
         nameEs.ifBlank { name }
     } else {
         name
     }
-}
 
 data class CategorySelectOption(
     val id: String,

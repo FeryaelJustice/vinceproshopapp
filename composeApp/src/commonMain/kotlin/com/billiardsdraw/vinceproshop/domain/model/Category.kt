@@ -12,6 +12,11 @@ data class Category(
     val isCue: Boolean,
 )
 
-fun Category.localizedName(languageCode: String): String {
-    return if (languageCode.startsWith("es", ignoreCase = true)) nameEs.ifBlank { name } else name
-}
+fun Category.localizedName(languageCode: String): String =
+    if (languageCode.startsWith("es", ignoreCase = true)) {
+        nameEs.ifBlank {
+            name
+        }
+    } else {
+        name
+    }

@@ -38,13 +38,12 @@ import com.billiardsdraw.vinceproshop.presentation.common.tr
 import com.billiardsdraw.vinceproshop.presentation.components.EmptyState
 import com.billiardsdraw.vinceproshop.presentation.components.ProductCard
 
-
 private enum class CatalogItemType {
-    FilterPanel,  // item de span completo con todos los filtros
-    Loading,      // Text "Cargando catalogo..."
-    Empty,        // EmptyState sin resultados
-    Product,      // ProductCard (cue y regular — mismo composable, mismo tipo)
-    Error,        // Text de errorMessage
+    FilterPanel, // item de span completo con todos los filtros
+    Loading, // Text "Cargando catalogo..."
+    Empty, // EmptyState sin resultados
+    Product, // ProductCard (cue y regular — mismo composable, mismo tipo)
+    Error, // Text de errorMessage
 }
 
 data class CatalogRenderItem(
@@ -66,12 +65,13 @@ fun CatalogScreen(
     onClearFilters: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val renderItems = remember(state.cueProducts, state.regularProducts) {
-        buildList {
-            state.cueProducts.forEach { add(CatalogRenderItem(it.slug, true)) }
-            state.regularProducts.forEach { add(CatalogRenderItem(it.slug, false)) }
+    val renderItems =
+        remember(state.cueProducts, state.regularProducts) {
+            buildList {
+                state.cueProducts.forEach { add(CatalogRenderItem(it.slug, true)) }
+                state.regularProducts.forEach { add(CatalogRenderItem(it.slug, false)) }
+            }
         }
-    }
 
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 180.dp),
@@ -107,10 +107,11 @@ fun CatalogScreen(
             item(span = { GridItemSpan(maxLineSpan) }, contentType = CatalogItemType.Empty) {
                 EmptyState(
                     title = tr("No results", "Sin resultados"),
-                    description = tr(
-                        "Adjust filters or search for another product.",
-                        "Ajusta filtros o busca otro producto.",
-                    ),
+                    description =
+                        tr(
+                            "Adjust filters or search for another product.",
+                            "Ajusta filtros o busca otro producto.",
+                        ),
                 )
             }
         }
@@ -119,7 +120,7 @@ fun CatalogScreen(
             items = renderItems,
             key = { it.slug },
             span = { item -> if (item.cue) GridItemSpan(maxLineSpan) else GridItemSpan(1) },
-            contentType = { CatalogItemType.Product }
+            contentType = { CatalogItemType.Product },
         ) { entry ->
             val product =
                 (state.cueProducts + state.regularProducts).firstOrNull { it.slug == entry.slug }
@@ -155,7 +156,13 @@ private fun FilterPanel(
     onSortChange: (CatalogSort) -> Unit,
     onClearFilters: () -> Unit,
 ) {
-    val brands = remember(state.products) { state.products.map { it.vendor }.distinct().sorted() }
+    val brands =
+        remember(state.products) {
+            state.products
+                .map { it.vendor }
+                .distinct()
+                .sorted()
+        }
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -168,33 +175,35 @@ private fun FilterPanel(
 
         ChipGroup(
             title = tr("Availability", "Disponibilidad"),
-            options = listOf(
-                tr("All", "Todos") to (state.availability == AvailabilityFilter.All),
-                tr("In stock", "En stock") to (state.availability == AvailabilityFilter.InStock),
-                tr(
-                    "Out of stock",
-                    "Sin stock"
-                ) to (state.availability == AvailabilityFilter.OutOfStock),
-            ),
+            options =
+                listOf(
+                    tr("All", "Todos") to (state.availability == AvailabilityFilter.All),
+                    tr("In stock", "En stock") to (state.availability == AvailabilityFilter.InStock),
+                    tr(
+                        "Out of stock",
+                        "Sin stock",
+                    ) to (state.availability == AvailabilityFilter.OutOfStock),
+                ),
             onClick = { index ->
                 onAvailabilityChange(
                     when (index) {
                         1 -> AvailabilityFilter.InStock
                         2 -> AvailabilityFilter.OutOfStock
                         else -> AvailabilityFilter.All
-                    }
+                    },
                 )
             },
         )
 
         ChipGroup(
             title = tr("Sort", "Ordenar"),
-            options = listOf(
-                tr("A-Z", "A-Z") to (state.sort == CatalogSort.AlphaAsc),
-                tr("Z-A", "Z-A") to (state.sort == CatalogSort.AlphaDesc),
-                tr("Price low", "Precio menor") to (state.sort == CatalogSort.PriceAsc),
-                tr("Price high", "Precio mayor") to (state.sort == CatalogSort.PriceDesc),
-            ),
+            options =
+                listOf(
+                    tr("A-Z", "A-Z") to (state.sort == CatalogSort.AlphaAsc),
+                    tr("Z-A", "Z-A") to (state.sort == CatalogSort.AlphaDesc),
+                    tr("Price low", "Precio menor") to (state.sort == CatalogSort.PriceAsc),
+                    tr("Price high", "Precio mayor") to (state.sort == CatalogSort.PriceDesc),
+                ),
             onClick = { index ->
                 onSortChange(
                     when (index) {
@@ -202,7 +211,7 @@ private fun FilterPanel(
                         2 -> CatalogSort.PriceAsc
                         3 -> CatalogSort.PriceDesc
                         else -> CatalogSort.AlphaAsc
-                    }
+                    },
                 )
             },
         )
@@ -217,9 +226,10 @@ private fun FilterPanel(
         if (brands.isNotEmpty()) {
             ChipGroup(
                 title = tr("Brands", "Marcas"),
-                options = brands.map { brand ->
-                    brand to state.selectedBrands.contains(brand)
-                },
+                options =
+                    brands.map { brand ->
+                        brand to state.selectedBrands.contains(brand)
+                    },
                 onClick = { index -> onToggleBrand(brands[index]) },
             )
         }
@@ -230,22 +240,24 @@ private fun FilterPanel(
                 onValueChange = onMinPriceChange,
                 singleLine = true,
                 label = { Text(tr("Min price", "Precio min")) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics {
-                        contentDescription = tr("Minimum price input", "Campo de precio minimo")
-                    },
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .semantics {
+                            contentDescription = tr("Minimum price input", "Campo de precio minimo")
+                        },
             )
             OutlinedTextField(
                 value = state.maxPrice,
                 onValueChange = onMaxPriceChange,
                 singleLine = true,
                 label = { Text(tr("Max price", "Precio max")) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics {
-                        contentDescription = tr("Maximum price input", "Campo de precio maximo")
-                    },
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .semantics {
+                            contentDescription = tr("Maximum price input", "Campo de precio maximo")
+                        },
             )
         }
 
@@ -270,17 +282,19 @@ private fun CategoryDropdown(
     onSelectCategory: (String?) -> Unit,
 ) {
     val allLabel = if (isSpanishLanguage()) "Todas" else "All"
-    val options = remember(categories, languageCode) {
-        buildCategoryTreeOptions(categories, languageCode)
-    }
-    val selectedLabel = remember(categories, languageCode, selectedCategoryId) {
-        if (selectedCategoryId == null) {
-            allLabel
-        } else {
-            categories.firstOrNull { it.id == selectedCategoryId }?.localizedName(languageCode)
-                ?: allLabel
+    val options =
+        remember(categories, languageCode) {
+            buildCategoryTreeOptions(categories, languageCode)
         }
-    }
+    val selectedLabel =
+        remember(categories, languageCode, selectedCategoryId) {
+            if (selectedCategoryId == null) {
+                allLabel
+            } else {
+                categories.firstOrNull { it.id == selectedCategoryId }?.localizedName(languageCode)
+                    ?: allLabel
+            }
+        }
     var expanded by remember { mutableStateOf(false) }
 
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -300,12 +314,13 @@ private fun CategoryDropdown(
                 readOnly = true,
                 singleLine = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                modifier = Modifier
-                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                    .fillMaxWidth()
-                    .semantics {
-                        contentDescription = tr("Category selector", "Selector de categoria")
-                    },
+                modifier =
+                    Modifier
+                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                        .fillMaxWidth()
+                        .semantics {
+                            contentDescription = tr("Category selector", "Selector de categoria")
+                        },
             )
 
             ExposedDropdownMenu(
@@ -363,11 +378,12 @@ private fun ChipGroup(
                 AssistChip(
                     onClick = { onClick(index) },
                     label = { Text(label) },
-                    leadingIcon = if (selected) {
-                        { Text("●", color = MaterialTheme.colorScheme.primary) }
-                    } else {
-                        null
-                    },
+                    leadingIcon =
+                        if (selected) {
+                            { Text("●", color = MaterialTheme.colorScheme.primary) }
+                        } else {
+                            null
+                        },
                 )
             }
         }
@@ -381,23 +397,28 @@ private fun buildCategoryTreeOptions(
     if (categories.isEmpty()) return emptyList()
 
     val byId = categories.associateBy { it.id }
-    val childrenByParent = categories.groupBy { category ->
-        category.parentId?.takeIf { byId.containsKey(it) }
-    }
+    val childrenByParent =
+        categories.groupBy { category ->
+            category.parentId?.takeIf { byId.containsKey(it) }
+        }
     val visited = mutableSetOf<String>()
     val result = mutableListOf<CategoryTreeOption>()
 
-    fun visit(parentId: String?, depth: Int) {
+    fun visit(
+        parentId: String?,
+        depth: Int,
+    ) {
         childrenByParent[parentId]
             .orEmpty()
             .sortedBy { it.localizedName(languageCode).lowercase() }
             .forEach { child ->
                 if (!visited.add(child.id)) return@forEach
-                result += CategoryTreeOption(
-                    id = child.id,
-                    label = child.localizedName(languageCode),
-                    depth = depth,
-                )
+                result +=
+                    CategoryTreeOption(
+                        id = child.id,
+                        label = child.localizedName(languageCode),
+                        depth = depth,
+                    )
                 visit(child.id, depth + 1)
             }
     }
@@ -408,11 +429,12 @@ private fun buildCategoryTreeOptions(
         .sortedBy { it.localizedName(languageCode).lowercase() }
         .forEach { category ->
             if (!visited.contains(category.id)) {
-                result += CategoryTreeOption(
-                    id = category.id,
-                    label = category.localizedName(languageCode),
-                    depth = 0,
-                )
+                result +=
+                    CategoryTreeOption(
+                        id = category.id,
+                        label = category.localizedName(languageCode),
+                        depth = 0,
+                    )
                 visit(category.id, 1)
             }
         }

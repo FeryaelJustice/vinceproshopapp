@@ -8,7 +8,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 expect fun platformLanguageCode(): String
+
 expect fun readStoredLanguageOption(): String?
+
 expect fun writeStoredLanguageOption(option: String?)
 
 object LocalizationManager {
@@ -25,28 +27,21 @@ object LocalizationManager {
         writeStoredLanguageOption(normalized)
     }
 
-    private fun resolveLanguageCode(option: String): String {
-        return if (option.equals("system", ignoreCase = true)) {
+    private fun resolveLanguageCode(option: String): String =
+        if (option.equals("system", ignoreCase = true)) {
             platformLanguageCode().ifBlank { "en" }
         } else {
             option.lowercase()
         }
-    }
 
-    private fun normalizeLanguageOption(option: String): String {
-        return option.trim().lowercase().ifBlank { "system" }
-    }
+    private fun normalizeLanguageOption(option: String): String = option.trim().lowercase().ifBlank { "system" }
 }
 
 @Composable
-fun rememberCurrentLanguageCodeState(): State<String> {
-    return LocalizationManager.resolvedLanguageCode.collectAsStateWithLifecycle()
-}
+fun rememberCurrentLanguageCodeState(): State<String> = LocalizationManager.resolvedLanguageCode.collectAsStateWithLifecycle()
 
 @Composable
-fun rememberLanguageOptionState(): State<String> {
-    return LocalizationManager.languageOption.collectAsStateWithLifecycle()
-}
+fun rememberLanguageOptionState(): State<String> = LocalizationManager.languageOption.collectAsStateWithLifecycle()
 
 fun currentLanguageCode(): String = LocalizationManager.resolvedLanguageCode.value
 

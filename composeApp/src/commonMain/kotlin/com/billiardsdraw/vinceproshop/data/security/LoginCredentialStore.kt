@@ -7,7 +7,12 @@ data class LoginCredential(
 
 interface LoginCredentialStore {
     suspend fun readCredential(): LoginCredential?
-    suspend fun saveCredential(identifier: String, password: String)
+
+    suspend fun saveCredential(
+        identifier: String,
+        password: String,
+    )
+
     suspend fun clearCredential()
 }
 

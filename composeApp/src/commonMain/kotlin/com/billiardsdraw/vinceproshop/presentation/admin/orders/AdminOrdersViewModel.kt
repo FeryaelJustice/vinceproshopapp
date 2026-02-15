@@ -34,35 +34,41 @@ class AdminOrdersViewModel(
             _state.value = _state.value.copy(isLoading = true)
             runCatching { adminApi.orders() }
                 .onSuccess { orders ->
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        error = null,
-                        orders = orders,
-                    )
-                }
-                .onFailure { throwable ->
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        error = throwable.message ?: tr("Could not load orders", "No se pudieron cargar pedidos"),
-                    )
+                    _state.value =
+                        _state.value.copy(
+                            isLoading = false,
+                            error = null,
+                            orders = orders,
+                        )
+                }.onFailure { throwable ->
+                    _state.value =
+                        _state.value.copy(
+                            isLoading = false,
+                            error = throwable.message ?: tr("Could not load orders", "No se pudieron cargar pedidos"),
+                        )
                 }
         }
     }
 
-    fun updateOrderStatus(orderId: Int, nextStatus: String) {
+    fun updateOrderStatus(
+        orderId: Int,
+        nextStatus: String,
+    ) {
         val previous = _state.value.orders
-        _state.value = _state.value.copy(
-            isUpdating = true,
-            orders = previous.map { if (it.id == orderId) it.copy(status = nextStatus) else it },
-        )
+        _state.value =
+            _state.value.copy(
+                isUpdating = true,
+                orders = previous.map { if (it.id == orderId) it.copy(status = nextStatus) else it },
+            )
         viewModelScope.launch(dispatchers.io) {
             runCatching { adminApi.updateOrderStatus(orderId, nextStatus) }
                 .onFailure { throwable ->
-                    _state.value = _state.value.copy(
-                        isUpdating = false,
-                        error = throwable.message ?: tr("Status update failed", "No se pudo actualizar estado"),
-                        orders = previous,
-                    )
+                    _state.value =
+                        _state.value.copy(
+                            isUpdating = false,
+                            error = throwable.message ?: tr("Status update failed", "No se pudo actualizar estado"),
+                            orders = previous,
+                        )
                     return@launch
                 }
             _state.value = _state.value.copy(isUpdating = false)
@@ -70,4 +76,3 @@ class AdminOrdersViewModel(
         }
     }
 }
-

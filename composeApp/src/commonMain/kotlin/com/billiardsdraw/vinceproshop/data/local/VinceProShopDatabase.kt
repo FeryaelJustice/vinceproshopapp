@@ -18,8 +18,11 @@ import androidx.room.RoomDatabaseConstructor
 @ConstructedBy(VinceProShopDatabaseConstructor::class)
 abstract class VinceProShopDatabase : RoomDatabase() {
     abstract fun productDao(): ProductDao
+
     abstract fun categoryDao(): CategoryDao
+
     abstract fun featuredDao(): FeaturedDao
+
     abstract fun cartDao(): CartDao
 }
 

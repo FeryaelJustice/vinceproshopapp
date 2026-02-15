@@ -15,11 +15,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.billiardsdraw.vinceproshop.presentation.common.tr
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -47,12 +47,20 @@ fun AdminManageSizesScreen(
         }
 
         when {
-            state.isLoading -> Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                CircularProgressIndicator()
+            state.isLoading -> {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    CircularProgressIndicator()
+                }
             }
 
-            state.error != null -> Text(state.error, color = MaterialTheme.colorScheme.error)
-            state.sizes.isEmpty() -> Text(tr("No sizes configured.", "No hay tallas configuradas."))
+            state.error != null -> {
+                Text(state.error, color = MaterialTheme.colorScheme.error)
+            }
+
+            state.sizes.isEmpty() -> {
+                Text(tr("No sizes configured.", "No hay tallas configuradas."))
+            }
+
             else -> {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(state.sizes, key = { it.id }) { size ->
@@ -87,7 +95,7 @@ fun AdminManageSizesScreen(
                         tr("Add Size", "Agregar talla")
                     } else {
                         tr("Edit Size", "Editar talla")
-                    }
+                    },
                 )
             },
             text = {

@@ -29,7 +29,10 @@ object LenientNullableIntSerializer : KSerializer<Int?> {
     }
 
     @OptIn(ExperimentalSerializationApi::class)
-    override fun serialize(encoder: Encoder, value: Int?) {
+    override fun serialize(
+        encoder: Encoder,
+        value: Int?,
+    ) {
         if (value == null) {
             encoder.encodeNull()
         } else {
@@ -53,7 +56,10 @@ object LenientNullableDoubleSerializer : KSerializer<Double?> {
     }
 
     @OptIn(ExperimentalSerializationApi::class)
-    override fun serialize(encoder: Encoder, value: Double?) {
+    override fun serialize(
+        encoder: Encoder,
+        value: Double?,
+    ) {
         if (value == null) {
             encoder.encodeNull()
         } else {

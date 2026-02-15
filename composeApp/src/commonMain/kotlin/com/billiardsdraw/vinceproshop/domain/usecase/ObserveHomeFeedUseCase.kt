@@ -14,8 +14,8 @@ data class HomeFeed(
 class ObserveHomeFeedUseCase(
     private val repository: CatalogRepository,
 ) {
-    operator fun invoke(): Flow<HomeFeed> {
-        return combine(
+    operator fun invoke(): Flow<HomeFeed> =
+        combine(
             repository.observeFeaturedSlides(),
             repository.observeProducts(),
         ) { featured, products ->
@@ -24,5 +24,4 @@ class ObserveHomeFeedUseCase(
                 quickView = products.take(3),
             )
         }
-    }
 }

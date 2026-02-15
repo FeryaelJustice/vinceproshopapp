@@ -12,11 +12,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.billiardsdraw.vinceproshop.core.formatEuro
 import com.billiardsdraw.vinceproshop.data.remote.CategoryDto
 import com.billiardsdraw.vinceproshop.presentation.common.tr
@@ -52,8 +52,14 @@ fun AdminInventoryScreen(
                 }
             }
 
-            state.error != null -> Text(state.error, color = MaterialTheme.colorScheme.error)
-            state.products.isEmpty() -> Text(tr("No products found.", "No hay productos."))
+            state.error != null -> {
+                Text(state.error, color = MaterialTheme.colorScheme.error)
+            }
+
+            state.products.isEmpty() -> {
+                Text(tr("No products found.", "No hay productos."))
+            }
+
             else -> {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     items(state.products, key = { it.id }) { product ->
@@ -68,7 +74,7 @@ fun AdminInventoryScreen(
                             Text("${tr("Category", "Categoria")}: ${categoryBreadcrumb(product.categoryId, state.categories)}")
                             Text(
                                 "${tr("Status", "Estado")}: " +
-                                    if (product.discontinued == 1) tr("Discontinued", "Descontinuado") else tr("Active", "Activo")
+                                    if (product.discontinued == 1) tr("Discontinued", "Descontinuado") else tr("Active", "Activo"),
                             )
                             Text("${tr("Out Of Stock Interested", "Interesados sin stock")}: ${product.stockInterestCount}")
 
@@ -90,7 +96,10 @@ fun AdminInventoryScreen(
     }
 }
 
-private fun categoryBreadcrumb(categoryId: String, categories: List<CategoryDto>): String {
+private fun categoryBreadcrumb(
+    categoryId: String,
+    categories: List<CategoryDto>,
+): String {
     if (categoryId.isBlank()) return "-"
     val byId = categories.associateBy { it.id }
     val visited = mutableSetOf<String>()

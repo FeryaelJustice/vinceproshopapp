@@ -45,7 +45,6 @@ class CatalogViewModel(
     private val refreshCatalog: RefreshCatalogUseCase,
     dispatchers: DispatchersProvider,
 ) : ViewModel() {
-
     private val _state = MutableStateFlow(CatalogUiState())
     val state: StateFlow<CatalogUiState> = _state.asStateFlow()
 
@@ -56,10 +55,11 @@ class CatalogViewModel(
         viewModelScope.launch(dispatchers.io) {
             runCatching { refreshCatalog() }
                 .onFailure { error ->
-                    _state.value = _state.value.copy(
-                        errorMessage = error.message,
-                        isLoading = false,
-                    )
+                    _state.value =
+                        _state.value.copy(
+                            errorMessage = error.message,
+                            isLoading = false,
+                        )
                 }
         }
 
@@ -109,14 +109,15 @@ class CatalogViewModel(
     }
 
     fun clearFilters() {
-        _state.value = _state.value.copy(
-            selectedCategoryId = null,
-            selectedBrands = emptySet(),
-            minPrice = "",
-            maxPrice = "",
-            availability = AvailabilityFilter.All,
-            sort = CatalogSort.AlphaAsc,
-        )
+        _state.value =
+            _state.value.copy(
+                selectedCategoryId = null,
+                selectedBrands = emptySet(),
+                minPrice = "",
+                maxPrice = "",
+                availability = AvailabilityFilter.All,
+                sort = CatalogSort.AlphaAsc,
+            )
         recalculateState()
     }
 
@@ -126,50 +127,50 @@ class CatalogViewModel(
         val min = snapshot.minPrice.toDoubleOrNull()
         val max = snapshot.maxPrice.toDoubleOrNull()
 
-        val filtered = allProducts
-            .asSequence()
-            .filter { product ->
-                categoryIds == null || categoryIds.contains(product.categoryId)
-            }
-            .filter { product ->
-                when (snapshot.availability) {
-                    AvailabilityFilter.All -> true
-                    AvailabilityFilter.InStock -> product.inStock > 0
-                    AvailabilityFilter.OutOfStock -> product.inStock <= 0
-                }
-            }
-            .filter { product ->
-                snapshot.selectedBrands.isEmpty() || snapshot.selectedBrands.contains(product.vendor)
-            }
-            .filter { product ->
-                (min == null || product.price >= min) && (max == null || product.price <= max)
-            }
-            .toList()
-            .sortedWith(sortComparator(snapshot.sort))
+        val filtered =
+            allProducts
+                .asSequence()
+                .filter { product ->
+                    categoryIds == null || categoryIds.contains(product.categoryId)
+                }.filter { product ->
+                    when (snapshot.availability) {
+                        AvailabilityFilter.All -> true
+                        AvailabilityFilter.InStock -> product.inStock > 0
+                        AvailabilityFilter.OutOfStock -> product.inStock <= 0
+                    }
+                }.filter { product ->
+                    snapshot.selectedBrands.isEmpty() || snapshot.selectedBrands.contains(product.vendor)
+                }.filter { product ->
+                    (min == null || product.price >= min) && (max == null || product.price <= max)
+                }.toList()
+                .sortedWith(sortComparator(snapshot.sort))
 
         val cueProducts = filtered.filter { isCueCategory(it.categoryId, allCategories) }
         val regularProducts = filtered.filterNot { isCueCategory(it.categoryId, allCategories) }
 
-        _state.value = snapshot.copy(
-            isLoading = false,
-            products = filtered,
-            cueProducts = cueProducts,
-            regularProducts = regularProducts,
-            categories = allCategories,
-            errorMessage = null,
-        )
+        _state.value =
+            snapshot.copy(
+                isLoading = false,
+                products = filtered,
+                cueProducts = cueProducts,
+                regularProducts = regularProducts,
+                categories = allCategories,
+                errorMessage = null,
+            )
     }
 
-    private fun sortComparator(sort: CatalogSort): Comparator<Product> {
-        return when (sort) {
+    private fun sortComparator(sort: CatalogSort): Comparator<Product> =
+        when (sort) {
             CatalogSort.AlphaAsc -> compareBy { it.name.lowercase() }
             CatalogSort.AlphaDesc -> compareByDescending { it.name.lowercase() }
             CatalogSort.PriceAsc -> compareBy { it.price }
             CatalogSort.PriceDesc -> compareByDescending { it.price }
         }
-    }
 
-    private fun buildCategoryScope(categoryId: String?, categories: List<Category>): Set<String>? {
+    private fun buildCategoryScope(
+        categoryId: String?,
+        categories: List<Category>,
+    ): Set<String>? {
         if (categoryId.isNullOrBlank()) return null
         val childrenByParent = categories.groupBy { it.parentId }
         val result = mutableSetOf<String>()
@@ -183,7 +184,10 @@ class CatalogViewModel(
         return result
     }
 
-    private fun isCueCategory(categoryId: String, categories: List<Category>): Boolean {
+    private fun isCueCategory(
+        categoryId: String,
+        categories: List<Category>,
+    ): Boolean {
         val byId = categories.associateBy { it.id }
         var current: String? = categoryId
         val visited = mutableSetOf<String>()

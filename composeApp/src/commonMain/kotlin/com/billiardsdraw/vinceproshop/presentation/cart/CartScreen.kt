@@ -69,10 +69,11 @@ fun CartScreen(
             !state.isLoading && state.items.isEmpty() -> {
                 EmptyState(
                     title = tr("Your cart is empty", "Tu carrito esta vacio"),
-                    description = tr(
-                        "Add products from the catalog.",
-                        "Agrega productos desde el catalogo.",
-                    ),
+                    description =
+                        tr(
+                            "Add products from the catalog.",
+                            "Agrega productos desde el catalogo.",
+                        ),
                     modifier = Modifier.fillMaxSize(),
                 )
                 return
@@ -87,7 +88,7 @@ fun CartScreen(
                     items(
                         items = state.items,
                         key = { "${it.slug}-${it.size}" },
-                        contentType = { "cartItems" }
+                        contentType = { "cartItems" },
                     ) { item ->
                         CartItemCard(
                             item = item,
@@ -139,10 +140,11 @@ private fun CheckoutPanel(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Text(
-            text = tr(
-                "Subtotal: ${formatEuro(state.subtotal)}",
-                "Subtotal: ${formatEuro(state.subtotal)}"
-            ),
+            text =
+                tr(
+                    "Subtotal: ${formatEuro(state.subtotal)}",
+                    "Subtotal: ${formatEuro(state.subtotal)}",
+                ),
             style = MaterialTheme.typography.titleLarge,
         )
 
@@ -175,27 +177,30 @@ private fun CheckoutPanel(
                 OutlinedTextField(
                     value = customer.name,
                     onValueChange = { onCustomerInfoChanged(customer.copy(name = it)) },
-                    modifier = Modifier.fillMaxWidth().semantics {
-                        contentDescription = tr("Name input", "Campo de nombre")
-                    },
+                    modifier =
+                        Modifier.fillMaxWidth().semantics {
+                            contentDescription = tr("Name input", "Campo de nombre")
+                        },
                     label = { Text(tr("Name", "Nombre")) },
                     singleLine = true,
                 )
                 OutlinedTextField(
                     value = customer.email,
                     onValueChange = { onCustomerInfoChanged(customer.copy(email = it)) },
-                    modifier = Modifier.fillMaxWidth().semantics {
-                        contentDescription = tr("Email input", "Campo de correo")
-                    },
+                    modifier =
+                        Modifier.fillMaxWidth().semantics {
+                            contentDescription = tr("Email input", "Campo de correo")
+                        },
                     label = { Text(tr("Email", "Correo")) },
                     singleLine = true,
                 )
                 OutlinedTextField(
                     value = customer.address,
                     onValueChange = { onCustomerInfoChanged(customer.copy(address = it)) },
-                    modifier = Modifier.fillMaxWidth().semantics {
-                        contentDescription = tr("Address input", "Campo de direccion")
-                    },
+                    modifier =
+                        Modifier.fillMaxWidth().semantics {
+                            contentDescription = tr("Address input", "Campo de direccion")
+                        },
                     label = { Text(tr("Address", "Direccion")) },
                     singleLine = true,
                 )
@@ -206,18 +211,20 @@ private fun CheckoutPanel(
                     OutlinedTextField(
                         value = customer.city,
                         onValueChange = { onCustomerInfoChanged(customer.copy(city = it)) },
-                        modifier = Modifier.weight(1f).semantics {
-                            contentDescription = tr("City input", "Campo de ciudad")
-                        },
+                        modifier =
+                            Modifier.weight(1f).semantics {
+                                contentDescription = tr("City input", "Campo de ciudad")
+                            },
                         label = { Text(tr("City", "Ciudad")) },
                         singleLine = true,
                     )
                     OutlinedTextField(
                         value = customer.zipCode,
                         onValueChange = { onCustomerInfoChanged(customer.copy(zipCode = it)) },
-                        modifier = Modifier.weight(1f).semantics {
-                            contentDescription = tr("ZIP code input", "Campo de codigo postal")
-                        },
+                        modifier =
+                            Modifier.weight(1f).semantics {
+                                contentDescription = tr("ZIP code input", "Campo de codigo postal")
+                            },
                         label = { Text(tr("ZIP", "CP")) },
                         singleLine = true,
                     )
@@ -229,18 +236,20 @@ private fun CheckoutPanel(
                     OutlinedTextField(
                         value = customer.country,
                         onValueChange = { onCustomerInfoChanged(customer.copy(country = it)) },
-                        modifier = Modifier.weight(1f).semantics {
-                            contentDescription = tr("Country input", "Campo de pais")
-                        },
+                        modifier =
+                            Modifier.weight(1f).semantics {
+                                contentDescription = tr("Country input", "Campo de pais")
+                            },
                         label = { Text(tr("Country", "Pais")) },
                         singleLine = true,
                     )
                     OutlinedTextField(
                         value = customer.phone,
                         onValueChange = { onCustomerInfoChanged(customer.copy(phone = it)) },
-                        modifier = Modifier.weight(1f).semantics {
-                            contentDescription = tr("Phone input", "Campo de telefono")
-                        },
+                        modifier =
+                            Modifier.weight(1f).semantics {
+                                contentDescription = tr("Phone input", "Campo de telefono")
+                            },
                         label = { Text(tr("Phone", "Telefono")) },
                         singleLine = true,
                     )
@@ -256,7 +265,7 @@ private fun CheckoutPanel(
                             tr("Creating payment intent...", "Creando intento de pago...")
                         } else {
                             tr("Continue to payment", "Continuar al pago")
-                        }
+                        },
                     )
                 }
             }
@@ -267,10 +276,11 @@ private fun CheckoutPanel(
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Text(
-                    text = tr(
-                        "Use the secure Stripe checkout sheet to confirm payment.",
-                        "Usa la pasarela segura de Stripe para confirmar el pago.",
-                    ),
+                    text =
+                        tr(
+                            "Use the secure Stripe checkout sheet to confirm payment.",
+                            "Usa la pasarela segura de Stripe para confirmar el pago.",
+                        ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -278,10 +288,11 @@ private fun CheckoutPanel(
                 val clientSecret = state.paymentClientSecret
                 if (clientSecret.isNullOrBlank()) {
                     Text(
-                        text = tr(
-                            "Missing payment client secret. Go back and try again.",
-                            "Falta el client secret de pago. Vuelve atras e intenta de nuevo.",
-                        ),
+                        text =
+                            tr(
+                                "Missing payment client secret. Go back and try again.",
+                                "Falta el client secret de pago. Vuelve atras e intenta de nuevo.",
+                            ),
                         color = MaterialTheme.colorScheme.error,
                     )
                 } else {
@@ -311,7 +322,7 @@ private fun CheckoutPanel(
                 }
             }
 
-            CheckoutStep.Completed -> Unit
+            CheckoutStep.Completed -> {}
         }
 
         Button(
@@ -331,9 +342,10 @@ private fun CheckoutSuccess(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -353,18 +365,20 @@ private fun CheckoutSuccess(
                 )
                 if (paymentIntentId.isNotBlank()) {
                     Text(
-                        text = tr(
-                            "Transaction ID: $paymentIntentId",
-                            "ID de transaccion: $paymentIntentId",
-                        ),
+                        text =
+                            tr(
+                                "Transaction ID: $paymentIntentId",
+                                "ID de transaccion: $paymentIntentId",
+                            ),
                         style = MaterialTheme.typography.bodyMedium,
                     )
                 }
                 Text(
-                    text = tr(
-                        "Order status is finalized by webhook on backend.",
-                        "El estado final del pedido se confirma por webhook en backend.",
-                    ),
+                    text =
+                        tr(
+                            "Order status is finalized by webhook on backend.",
+                            "El estado final del pedido se confirma por webhook en backend.",
+                        ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -392,10 +406,11 @@ private fun CartItemCard(
                 AsyncImage(
                     model = item.imageUrl,
                     contentDescription = item.name,
-                    modifier = Modifier
-                        .size(74.dp)
-                        .height(74.dp)
-                        .clip(RoundedCornerShape(10.dp)),
+                    modifier =
+                        Modifier
+                            .size(74.dp)
+                            .height(74.dp)
+                            .clip(RoundedCornerShape(10.dp)),
                     contentScale = ContentScale.Crop,
                 )
                 Column(
@@ -434,9 +449,10 @@ private fun CartItemCard(
                     }
                     Text(
                         text = item.quantity.toString(),
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        modifier =
+                            Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
                     )
                     TextButton(onClick = { onUpdateQuantity(item, item.quantity + 1) }) {
                         Text("+")

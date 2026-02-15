@@ -2,7 +2,9 @@ package com.billiardsdraw.vinceproshop.data.security
 
 interface AuthTokenStore {
     suspend fun saveToken(token: String)
+
     suspend fun readToken(): String?
+
     suspend fun clearToken()
 }
 

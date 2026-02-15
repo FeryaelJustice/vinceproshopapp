@@ -5,13 +5,14 @@ const val PRODUCT_IMAGE_MAX_COUNT: Int = 20
 const val PRODUCT_IMAGE_MAX_FILE_SIZE_MB: Int = 20
 const val CATEGORY_IMAGE_MAX_FILE_SIZE_MB: Int = 10
 
-val ALLOWED_IMAGE_MIME_TYPES: Set<String> = setOf(
-    "image/jpeg",
-    "image/jpg",
-    "image/png",
-    "image/webp",
-    "image/avif",
-)
+val ALLOWED_IMAGE_MIME_TYPES: Set<String> =
+    setOf(
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/webp",
+        "image/avif",
+    )
 
 enum class AdminImageValidationError {
     Empty,
@@ -19,9 +20,7 @@ enum class AdminImageValidationError {
     TooLarge,
 }
 
-fun availableProductImageSlots(currentCount: Int): Int {
-    return (PRODUCT_IMAGE_MAX_COUNT - currentCount).coerceAtLeast(0)
-}
+fun availableProductImageSlots(currentCount: Int): Int = (PRODUCT_IMAGE_MAX_COUNT - currentCount).coerceAtLeast(0)
 
 fun validatePickedImage(
     bytes: ByteArray,
@@ -83,11 +82,10 @@ fun detectImageMimeType(bytes: ByteArray): String? {
     return null
 }
 
-fun fileExtensionForImageMimeType(mimeType: String): String {
-    return when (mimeType.lowercase()) {
+fun fileExtensionForImageMimeType(mimeType: String): String =
+    when (mimeType.lowercase()) {
         "image/png" -> "png"
         "image/webp" -> "webp"
         "image/avif" -> "avif"
         else -> "jpg"
     }
-}

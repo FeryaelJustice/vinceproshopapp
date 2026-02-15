@@ -60,9 +60,10 @@ fun AdminManageFeaturedScreen(
 
     var draft by remember { mutableStateOf<FeaturedDraft?>(null) }
 
-    val categoryOptions = remember(state.categories, languageCode) {
-        buildCategorySelectOptions(state.categories, languageCode = languageCode, onlyLeaf = true)
-    }
+    val categoryOptions =
+        remember(state.categories, languageCode) {
+            buildCategorySelectOptions(state.categories, languageCode = languageCode, onlyLeaf = true)
+        }
 
     Column(modifier = modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(
@@ -78,21 +79,22 @@ fun AdminManageFeaturedScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TextButton(
                     onClick = viewModel::refresh,
-                    enabled = !state.isSaving
+                    enabled = !state.isSaving,
                 ) { Text(tr("Refresh", "Actualizar")) }
                 Button(enabled = !state.isSaving, onClick = {
-                    draft = FeaturedDraft(
-                        id = 0,
-                        targetType = "product",
-                        productId = null,
-                        categoryId = null,
-                        title = "",
-                        titleEs = "",
-                        subtitle = "",
-                        subtitleEs = "",
-                        sortOrder = "0",
-                        isActive = true,
-                    )
+                    draft =
+                        FeaturedDraft(
+                            id = 0,
+                            targetType = "product",
+                            productId = null,
+                            categoryId = null,
+                            title = "",
+                            titleEs = "",
+                            subtitle = "",
+                            subtitleEs = "",
+                            sortOrder = "0",
+                            isActive = true,
+                        )
                 }) {
                     Text(tr("Add", "Agregar"))
                 }
@@ -100,63 +102,77 @@ fun AdminManageFeaturedScreen(
         }
 
         when {
-            state.isLoading -> Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                CircularProgressIndicator()
+            state.isLoading -> {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    CircularProgressIndicator()
+                }
             }
 
-            state.error != null -> Text(
-                state.error,
-                color = MaterialTheme.colorScheme.error
-            )
+            state.error != null -> {
+                Text(
+                    state.error,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
 
-            state.featured.isEmpty() -> Text(tr("No featured items.", "No hay destacados."))
-            else -> LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                items(state.featured, key = { it.id }) { item ->
-                    Column(modifier = Modifier.fillMaxWidth().padding(10.dp)) {
-                        Text("#${item.id} - ${item.title}", fontWeight = FontWeight.SemiBold)
-                        Text("${tr("Target", "Objetivo")}: ${item.targetType}")
-                        Text(
-                            "${tr("Destination", "Destino")}: " +
+            state.featured.isEmpty() -> {
+                Text(tr("No featured items.", "No hay destacados."))
+            }
+
+            else -> {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    items(state.featured, key = { it.id }) { item ->
+                        Column(modifier = Modifier.fillMaxWidth().padding(10.dp)) {
+                            Text("#${item.id} - ${item.title}", fontWeight = FontWeight.SemiBold)
+                            Text("${tr("Target", "Objetivo")}: ${item.targetType}")
+                            Text(
+                                "${tr("Destination", "Destino")}: " +
                                     if (item.targetType == "category") {
                                         item.categoryId.orEmpty()
                                     } else {
                                         item.slug.orEmpty()
+                                    },
+                            )
+                            Text("${tr("Order", "Orden")}: ${item.sortOrder}")
+                            Text(
+                                "${tr("Status", "Estado")}: ${
+                                    if (item.isActive == 1) {
+                                        tr(
+                                            "Active",
+                                            "Activo",
+                                        )
+                                    } else {
+                                        tr("Inactive", "Inactivo")
                                     }
-                        )
-                        Text("${tr("Order", "Orden")}: ${item.sortOrder}")
-                        Text(
-                            "${tr("Status", "Estado")}: ${
-                                if (item.isActive == 1) tr(
-                                    "Active",
-                                    "Activo"
-                                ) else tr("Inactive", "Inactivo")
-                            }"
-                        )
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            TextButton(onClick = {
-                                draft = FeaturedDraft(
-                                    id = item.id,
-                                    targetType = item.targetType,
-                                    productId = item.productId,
-                                    categoryId = item.categoryId,
-                                    title = item.title,
-                                    titleEs = item.titleEs,
-                                    subtitle = item.subtitle,
-                                    subtitleEs = item.subtitleEs,
-                                    sortOrder = item.sortOrder.toString(),
-                                    isActive = item.isActive == 1,
-                                )
-                            }) { Text(tr("Edit", "Editar")) }
-                            TextButton(onClick = {
-                                viewModel.deleteFeatured(item.id)
-                            }, enabled = !state.isSaving) {
-                                Text(
-                                    tr("Delete", "Eliminar"),
-                                    color = MaterialTheme.colorScheme.error
-                                )
+                                }",
+                            )
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                TextButton(onClick = {
+                                    draft =
+                                        FeaturedDraft(
+                                            id = item.id,
+                                            targetType = item.targetType,
+                                            productId = item.productId,
+                                            categoryId = item.categoryId,
+                                            title = item.title,
+                                            titleEs = item.titleEs,
+                                            subtitle = item.subtitle,
+                                            subtitleEs = item.subtitleEs,
+                                            sortOrder = item.sortOrder.toString(),
+                                            isActive = item.isActive == 1,
+                                        )
+                                }) { Text(tr("Edit", "Editar")) }
+                                TextButton(onClick = {
+                                    viewModel.deleteFeatured(item.id)
+                                }, enabled = !state.isSaving) {
+                                    Text(
+                                        tr("Delete", "Eliminar"),
+                                        color = MaterialTheme.colorScheme.error,
+                                    )
+                                }
                             }
                         }
                     }
@@ -171,10 +187,14 @@ fun AdminManageFeaturedScreen(
             onDismissRequest = { draft = null },
             title = {
                 Text(
-                    if (activeDraft.id == 0) tr(
-                        "Add Featured",
-                        "Agregar destacado"
-                    ) else tr("Edit Featured", "Editar destacado")
+                    if (activeDraft.id == 0) {
+                        tr(
+                            "Add Featured",
+                            "Agregar destacado",
+                        )
+                    } else {
+                        tr("Edit Featured", "Editar destacado")
+                    },
                 )
             },
             text = {
@@ -182,19 +202,23 @@ fun AdminManageFeaturedScreen(
                     var targetExpanded by remember(activeDraft.id) { mutableStateOf(false) }
                     ExposedDropdownMenuBox(
                         expanded = targetExpanded,
-                        onExpandedChange = { targetExpanded = !targetExpanded }) {
+                        onExpandedChange = { targetExpanded = !targetExpanded },
+                    ) {
                         OutlinedTextField(
                             value = activeDraft.targetType,
                             onValueChange = {},
                             readOnly = true,
                             label = { Text(tr("Target type", "Tipo de objetivo")) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = targetExpanded) },
-                            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                                .fillMaxWidth(),
+                            modifier =
+                                Modifier
+                                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                                    .fillMaxWidth(),
                         )
                         ExposedDropdownMenu(
                             expanded = targetExpanded,
-                            onDismissRequest = { targetExpanded = false }) {
+                            onDismissRequest = { targetExpanded = false },
+                        ) {
                             listOf("product", "category").forEach { option ->
                                 DropdownMenuItem(
                                     text = { Text(option) },
@@ -207,7 +231,7 @@ fun AdminManageFeaturedScreen(
                                             activeDraft.productId = null
                                         }
                                         draft = activeDraft.copy()
-                                    }
+                                    },
                                 )
                             }
                         }
@@ -217,9 +241,11 @@ fun AdminManageFeaturedScreen(
                         var productExpanded by remember(activeDraft.id) { mutableStateOf(false) }
                         ExposedDropdownMenuBox(
                             expanded = productExpanded,
-                            onExpandedChange = { productExpanded = !productExpanded }) {
+                            onExpandedChange = { productExpanded = !productExpanded },
+                        ) {
                             val selectedLabel =
-                                state.products.firstOrNull { it.id == activeDraft.productId }
+                                state.products
+                                    .firstOrNull { it.id == activeDraft.productId }
                                     ?.localizedName(languageCode)
                                     ?: tr("Select product", "Selecciona producto")
                             OutlinedTextField(
@@ -232,8 +258,10 @@ fun AdminManageFeaturedScreen(
                             )
                             ExposedDropdownMenu(
                                 expanded = productExpanded,
-                                onDismissRequest = { productExpanded = false }) {
-                                state.products.sortedBy { it.localizedName(languageCode) }
+                                onDismissRequest = { productExpanded = false },
+                            ) {
+                                state.products
+                                    .sortedBy { it.localizedName(languageCode) }
                                     .forEach { product ->
                                         DropdownMenuItem(
                                             text = { Text("${product.localizedName(languageCode)} (${product.slug})") },
@@ -241,7 +269,7 @@ fun AdminManageFeaturedScreen(
                                                 productExpanded = false
                                                 activeDraft.productId = product.id
                                                 draft = activeDraft.copy()
-                                            }
+                                            },
                                         )
                                     }
                             }
@@ -250,7 +278,8 @@ fun AdminManageFeaturedScreen(
                         var categoryExpanded by remember(activeDraft.id) { mutableStateOf(false) }
                         ExposedDropdownMenuBox(
                             expanded = categoryExpanded,
-                            onExpandedChange = { categoryExpanded = !categoryExpanded }) {
+                            onExpandedChange = { categoryExpanded = !categoryExpanded },
+                        ) {
                             val selectedLabel =
                                 categoryOptions.firstOrNull { it.id == activeDraft.categoryId }?.label
                                     ?: tr("Select category", "Selecciona categoria")
@@ -264,7 +293,8 @@ fun AdminManageFeaturedScreen(
                             )
                             ExposedDropdownMenu(
                                 expanded = categoryExpanded,
-                                onDismissRequest = { categoryExpanded = false }) {
+                                onDismissRequest = { categoryExpanded = false },
+                            ) {
                                 categoryOptions.forEach { option ->
                                     DropdownMenuItem(
                                         text = { Text(option.label) },
@@ -272,7 +302,7 @@ fun AdminManageFeaturedScreen(
                                             categoryExpanded = false
                                             activeDraft.categoryId = option.id
                                             draft = activeDraft.copy()
-                                        }
+                                        },
                                     )
                                 }
                             }
@@ -326,7 +356,7 @@ fun AdminManageFeaturedScreen(
                     )
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Text(tr("Active", "Activo"))
                         Switch(
@@ -342,17 +372,18 @@ fun AdminManageFeaturedScreen(
             confirmButton = {
                 TextButton(onClick = {
                     val sort = activeDraft.sortOrder.toIntOrNull() ?: 0
-                    val payload = AdminFeaturedUpsertRequestDto(
-                        targetType = activeDraft.targetType,
-                        productId = if (activeDraft.targetType == "product") activeDraft.productId else null,
-                        categoryId = if (activeDraft.targetType == "category") activeDraft.categoryId else null,
-                        title = activeDraft.title.trim(),
-                        titleEs = activeDraft.titleEs.trim(),
-                        subtitle = activeDraft.subtitle.trim(),
-                        subtitleEs = activeDraft.subtitleEs.trim(),
-                        sortOrder = sort,
-                        isActive = if (activeDraft.isActive) 1 else 0,
-                    )
+                    val payload =
+                        AdminFeaturedUpsertRequestDto(
+                            targetType = activeDraft.targetType,
+                            productId = if (activeDraft.targetType == "product") activeDraft.productId else null,
+                            categoryId = if (activeDraft.targetType == "category") activeDraft.categoryId else null,
+                            title = activeDraft.title.trim(),
+                            titleEs = activeDraft.titleEs.trim(),
+                            subtitle = activeDraft.subtitle.trim(),
+                            subtitleEs = activeDraft.subtitleEs.trim(),
+                            sortOrder = sort,
+                            isActive = if (activeDraft.isActive) 1 else 0,
+                        )
                     viewModel.saveFeatured(activeDraft.id, payload)
                     draft = null
                 }, enabled = !state.isSaving) {
@@ -362,7 +393,7 @@ fun AdminManageFeaturedScreen(
             dismissButton = {
                 TextButton(
                     onClick = { draft = null },
-                    enabled = !state.isSaving
+                    enabled = !state.isSaving,
                 ) { Text(tr("Cancel", "Cancelar")) }
             },
         )

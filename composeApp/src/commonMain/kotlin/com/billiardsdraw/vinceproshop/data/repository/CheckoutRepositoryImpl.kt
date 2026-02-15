@@ -13,31 +13,31 @@ class CheckoutRepositoryImpl(
     private val api: CheckoutApi,
     private val dispatchers: DispatchersProvider,
 ) : CheckoutRepository {
-
-    override suspend fun createPaymentIntent(payload: CheckoutPaymentIntentPayload): CheckoutPaymentIntent {
-        return withContext(dispatchers.io) {
-            val response = api.createPaymentIntent(
-                CreatePaymentIntentRequestDto(
-                    items = payload.items.map {
-                        CreatePaymentIntentItemDto(
-                            slug = it.slug,
-                            size = it.size,
-                            quantity = it.quantity,
-                        )
-                    },
-                    currency = payload.currency,
-                    customerEmail = payload.customerEmail,
-                    customerName = payload.customerName,
-                    address = payload.address,
-                    country = payload.country,
-                    phone = payload.phone,
-                    locale = payload.locale,
+    override suspend fun createPaymentIntent(payload: CheckoutPaymentIntentPayload): CheckoutPaymentIntent =
+        withContext(dispatchers.io) {
+            val response =
+                api.createPaymentIntent(
+                    CreatePaymentIntentRequestDto(
+                        items =
+                            payload.items.map {
+                                CreatePaymentIntentItemDto(
+                                    slug = it.slug,
+                                    size = it.size,
+                                    quantity = it.quantity,
+                                )
+                            },
+                        currency = payload.currency,
+                        customerEmail = payload.customerEmail,
+                        customerName = payload.customerName,
+                        address = payload.address,
+                        country = payload.country,
+                        phone = payload.phone,
+                        locale = payload.locale,
+                    ),
                 )
-            )
             CheckoutPaymentIntent(
                 clientSecret = response.clientSecret,
                 amount = response.amount,
             )
         }
-    }
 }

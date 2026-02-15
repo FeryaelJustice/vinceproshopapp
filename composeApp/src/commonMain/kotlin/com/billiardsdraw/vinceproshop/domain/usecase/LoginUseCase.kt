@@ -6,7 +6,8 @@ import com.billiardsdraw.vinceproshop.domain.repository.AccountRepository
 class LoginUseCase(
     private val repository: AccountRepository,
 ) {
-    suspend operator fun invoke(identifier: String, password: String): AuthSession {
-        return repository.login(identifier, password)
-    }
+    suspend operator fun invoke(
+        identifier: String,
+        password: String,
+    ): AuthSession = repository.login(identifier, password)
 }

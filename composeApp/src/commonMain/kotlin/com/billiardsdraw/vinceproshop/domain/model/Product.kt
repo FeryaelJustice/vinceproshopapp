@@ -34,10 +34,20 @@ data class Product(
     val options: List<ProductOption>,
 )
 
-fun Product.localizedName(languageCode: String): String {
-    return if (languageCode.startsWith("es", ignoreCase = true)) nameEs.ifBlank { name } else name
-}
+fun Product.localizedName(languageCode: String): String =
+    if (languageCode.startsWith("es", ignoreCase = true)) {
+        nameEs.ifBlank {
+            name
+        }
+    } else {
+        name
+    }
 
-fun Product.localizedDescription(languageCode: String): String {
-    return if (languageCode.startsWith("es", ignoreCase = true)) descriptionEs.ifBlank { description } else description
-}
+fun Product.localizedDescription(languageCode: String): String =
+    if (languageCode.startsWith("es", ignoreCase = true)) {
+        descriptionEs.ifBlank {
+            description
+        }
+    } else {
+        description
+    }

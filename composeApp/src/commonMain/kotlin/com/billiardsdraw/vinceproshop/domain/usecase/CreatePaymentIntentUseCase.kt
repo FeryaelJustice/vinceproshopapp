@@ -7,7 +7,5 @@ import com.billiardsdraw.vinceproshop.domain.repository.CheckoutRepository
 class CreatePaymentIntentUseCase(
     private val repository: CheckoutRepository,
 ) {
-    suspend operator fun invoke(payload: CheckoutPaymentIntentPayload): CheckoutPaymentIntent {
-        return repository.createPaymentIntent(payload)
-    }
+    suspend operator fun invoke(payload: CheckoutPaymentIntentPayload): CheckoutPaymentIntent = repository.createPaymentIntent(payload)
 }

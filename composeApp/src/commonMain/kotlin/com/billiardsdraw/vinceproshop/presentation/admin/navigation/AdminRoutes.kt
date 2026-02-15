@@ -22,17 +22,16 @@ object AdminRoutes {
     const val ManageFeatured = "/admin/featured/manage"
 }
 
-val adminDestinations: List<AdminDestinationItem> = listOf(
-    AdminDestinationItem(AdminRoutes.Orders, "Orders", AdminSection.Overview),
-    AdminDestinationItem(AdminRoutes.Inventory, "Inventory", AdminSection.Overview),
-    AdminDestinationItem(AdminRoutes.OutOfStockInterested, "Out Of Stock", AdminSection.Overview),
-    AdminDestinationItem(AdminRoutes.ManageInventory, "Manage Inventory", AdminSection.Manage),
-    AdminDestinationItem(AdminRoutes.ManageCategories, "Manage Categories", AdminSection.Manage),
-    AdminDestinationItem(AdminRoutes.ManageCrossSell, "Manage Cross Sell", AdminSection.Manage),
-    AdminDestinationItem(AdminRoutes.ManageSizes, "Manage Sizes", AdminSection.Manage),
-    AdminDestinationItem(AdminRoutes.ManageFeatured, "Manage Featured", AdminSection.Manage),
-)
+val adminDestinations: List<AdminDestinationItem> =
+    listOf(
+        AdminDestinationItem(AdminRoutes.Orders, "Orders", AdminSection.Overview),
+        AdminDestinationItem(AdminRoutes.Inventory, "Inventory", AdminSection.Overview),
+        AdminDestinationItem(AdminRoutes.OutOfStockInterested, "Out Of Stock", AdminSection.Overview),
+        AdminDestinationItem(AdminRoutes.ManageInventory, "Manage Inventory", AdminSection.Manage),
+        AdminDestinationItem(AdminRoutes.ManageCategories, "Manage Categories", AdminSection.Manage),
+        AdminDestinationItem(AdminRoutes.ManageCrossSell, "Manage Cross Sell", AdminSection.Manage),
+        AdminDestinationItem(AdminRoutes.ManageSizes, "Manage Sizes", AdminSection.Manage),
+        AdminDestinationItem(AdminRoutes.ManageFeatured, "Manage Featured", AdminSection.Manage),
+    )
 
-fun adminTitle(route: String): String {
-    return adminDestinations.firstOrNull { it.route == route }?.label ?: route
-}
+fun adminTitle(route: String): String = adminDestinations.firstOrNull { it.route == route }?.label ?: route

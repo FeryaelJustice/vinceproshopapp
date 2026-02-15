@@ -31,11 +31,11 @@ import com.billiardsdraw.vinceproshop.domain.usecase.CreatePaymentIntentUseCase
 import com.billiardsdraw.vinceproshop.domain.usecase.GetAdminOrdersUseCase
 import com.billiardsdraw.vinceproshop.domain.usecase.GetUserOrdersUseCase
 import com.billiardsdraw.vinceproshop.domain.usecase.LoginUseCase
+import com.billiardsdraw.vinceproshop.domain.usecase.LogoutUseCase
 import com.billiardsdraw.vinceproshop.domain.usecase.ObserveCartUseCase
 import com.billiardsdraw.vinceproshop.domain.usecase.ObserveCatalogUseCase
 import com.billiardsdraw.vinceproshop.domain.usecase.ObserveHomeFeedUseCase
 import com.billiardsdraw.vinceproshop.domain.usecase.ObserveProductDetailUseCase
-import com.billiardsdraw.vinceproshop.domain.usecase.LogoutUseCase
 import com.billiardsdraw.vinceproshop.domain.usecase.RefreshCatalogUseCase
 import com.billiardsdraw.vinceproshop.domain.usecase.RefreshProductUseCase
 import com.billiardsdraw.vinceproshop.domain.usecase.RefreshSessionUseCase
@@ -64,79 +64,80 @@ import org.koin.dsl.module
 
 expect val platformModule: Module
 
-val appModule = module {
-    includes(platformModule)
-    single<Json> {
-        Json {
-            prettyPrint = true
-            ignoreUnknownKeys = true
-            isLenient = true
-            encodeDefaults = true
+val appModule =
+    module {
+        includes(platformModule)
+        single<Json> {
+            Json {
+                prettyPrint = true
+                ignoreUnknownKeys = true
+                isLenient = true
+                encodeDefaults = true
+            }
         }
+        single<DispatchersProvider> { StandardDispatchers() }
+        single<String> { defaultApiBaseUrl() }
+        single<LoginCredentialStore> { provideLoginCredentialStore() }
+
+        single { createPlatformHttpClient(get(), get(), localHttpLogsEnabled()) }
+        single<VinceProShopDatabase> { createRoomDatabase() }
+
+        single { get<VinceProShopDatabase>().productDao() }
+        single { get<VinceProShopDatabase>().categoryDao() }
+        single { get<VinceProShopDatabase>().featuredDao() }
+        single { get<VinceProShopDatabase>().cartDao() }
+
+        single<CatalogApi> { KtorCatalogApi(get(), get()) }
+        single<AccountApi> { KtorAccountApi(get(), get(), get(), get()) }
+        single<AdminApi> { KtorAdminApi(get(), get(), get(), get()) }
+        single<CheckoutApi> { KtorCheckoutApi(get(), get(), get()) }
+
+        single<CatalogRepository> {
+            CatalogRepositoryImpl(
+                api = get(),
+                productDao = get(),
+                categoryDao = get(),
+                featuredDao = get(),
+                json = get(),
+                dispatchers = get(),
+                apiBaseUrl = get(),
+            )
+        }
+        single<CartRepository> { CartRepositoryImpl(get(), get()) }
+        single<AccountRepository> { AccountRepositoryImpl(get(), get()) }
+        single<CheckoutRepository> { CheckoutRepositoryImpl(get(), get()) }
+
+        factory { RefreshCatalogUseCase(get()) }
+        factory { ObserveHomeFeedUseCase(get()) }
+        factory { ObserveCatalogUseCase(get()) }
+        factory { SearchProductsUseCase() }
+        factory { ObserveProductDetailUseCase(get()) }
+        factory { RefreshProductUseCase(get()) }
+        factory { ObserveCartUseCase(get()) }
+        factory { AddCartItemUseCase(get()) }
+        factory { UpdateCartQuantityUseCase(get()) }
+        factory { RemoveCartItemUseCase(get()) }
+        factory { ClearCartUseCase(get()) }
+        factory { RefreshSessionUseCase(get()) }
+        factory { LoginUseCase(get()) }
+        factory { LogoutUseCase(get()) }
+        factory { GetUserOrdersUseCase(get()) }
+        factory { GetAdminOrdersUseCase(get()) }
+        factory { CreatePaymentIntentUseCase(get()) }
+
+        viewModel { HomeViewModel(get(), get(), get()) }
+        viewModel { CatalogViewModel(get(), get(), get()) }
+        viewModel { SearchViewModel(get(), get(), get()) }
+        viewModel { CartViewModel(get(), get(), get(), get(), get(), get()) }
+        viewModel { AccountViewModel(get(), get(), get(), get(), get(), get(), get()) }
+        viewModel { (slug: String) -> ProductDetailViewModel(slug, get(), get(), get(), get()) }
+        viewModel { AdminPanelViewModel() }
+        viewModel { AdminOrdersViewModel(get(), get()) }
+        viewModel { AdminInventoryViewModel(get(), get()) }
+        viewModel { AdminOutOfStockInterestedViewModel(get(), get()) }
+        viewModel { AdminManageInventoryViewModel(get(), get()) }
+        viewModel { AdminManageCategoriesViewModel(get(), get()) }
+        viewModel { AdminManageCrossSellViewModel(get(), get(), get()) }
+        viewModel { AdminManageSizesViewModel(get(), get()) }
+        viewModel { AdminManageFeaturedViewModel(get(), get(), get()) }
     }
-    single<DispatchersProvider> { StandardDispatchers() }
-    single<String> { defaultApiBaseUrl() }
-    single<LoginCredentialStore> { provideLoginCredentialStore() }
-
-    single { createPlatformHttpClient(get(), get(), localHttpLogsEnabled()) }
-    single<VinceProShopDatabase> { createRoomDatabase() }
-
-    single { get<VinceProShopDatabase>().productDao() }
-    single { get<VinceProShopDatabase>().categoryDao() }
-    single { get<VinceProShopDatabase>().featuredDao() }
-    single { get<VinceProShopDatabase>().cartDao() }
-
-    single<CatalogApi> { KtorCatalogApi(get(), get()) }
-    single<AccountApi> { KtorAccountApi(get(), get(), get(), get()) }
-    single<AdminApi> { KtorAdminApi(get(), get(), get(), get()) }
-    single<CheckoutApi> { KtorCheckoutApi(get(), get(), get()) }
-
-    single<CatalogRepository> {
-        CatalogRepositoryImpl(
-            api = get(),
-            productDao = get(),
-            categoryDao = get(),
-            featuredDao = get(),
-            json = get(),
-            dispatchers = get(),
-            apiBaseUrl = get(),
-        )
-    }
-    single<CartRepository> { CartRepositoryImpl(get(), get()) }
-    single<AccountRepository> { AccountRepositoryImpl(get(), get()) }
-    single<CheckoutRepository> { CheckoutRepositoryImpl(get(), get()) }
-
-    factory { RefreshCatalogUseCase(get()) }
-    factory { ObserveHomeFeedUseCase(get()) }
-    factory { ObserveCatalogUseCase(get()) }
-    factory { SearchProductsUseCase() }
-    factory { ObserveProductDetailUseCase(get()) }
-    factory { RefreshProductUseCase(get()) }
-    factory { ObserveCartUseCase(get()) }
-    factory { AddCartItemUseCase(get()) }
-    factory { UpdateCartQuantityUseCase(get()) }
-    factory { RemoveCartItemUseCase(get()) }
-    factory { ClearCartUseCase(get()) }
-    factory { RefreshSessionUseCase(get()) }
-    factory { LoginUseCase(get()) }
-    factory { LogoutUseCase(get()) }
-    factory { GetUserOrdersUseCase(get()) }
-    factory { GetAdminOrdersUseCase(get()) }
-    factory { CreatePaymentIntentUseCase(get()) }
-
-    viewModel { HomeViewModel(get(), get(), get()) }
-    viewModel { CatalogViewModel(get(), get(), get()) }
-    viewModel { SearchViewModel(get(), get(), get()) }
-    viewModel { CartViewModel(get(), get(), get(), get(), get(), get()) }
-    viewModel { AccountViewModel(get(), get(), get(), get(), get(), get(), get()) }
-    viewModel { (slug: String) -> ProductDetailViewModel(slug, get(), get(), get(), get()) }
-    viewModel { AdminPanelViewModel() }
-    viewModel { AdminOrdersViewModel(get(), get()) }
-    viewModel { AdminInventoryViewModel(get(), get()) }
-    viewModel { AdminOutOfStockInterestedViewModel(get(), get()) }
-    viewModel { AdminManageInventoryViewModel(get(), get()) }
-    viewModel { AdminManageCategoriesViewModel(get(), get()) }
-    viewModel { AdminManageCrossSellViewModel(get(), get(), get()) }
-    viewModel { AdminManageSizesViewModel(get(), get()) }
-    viewModel { AdminManageFeaturedViewModel(get(), get(), get()) }
-}

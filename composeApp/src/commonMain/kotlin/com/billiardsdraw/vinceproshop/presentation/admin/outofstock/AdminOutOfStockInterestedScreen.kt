@@ -12,11 +12,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.billiardsdraw.vinceproshop.presentation.common.tr
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -50,8 +50,14 @@ fun AdminOutOfStockInterestedScreen(
                 }
             }
 
-            state.error != null -> Text(state.error, color = MaterialTheme.colorScheme.error)
-            state.rows.isEmpty() -> Text(tr("No requests yet.", "Aun no hay solicitudes."))
+            state.error != null -> {
+                Text(state.error, color = MaterialTheme.colorScheme.error)
+            }
+
+            state.rows.isEmpty() -> {
+                Text(tr("No requests yet.", "Aun no hay solicitudes."))
+            }
+
             else -> {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     items(state.rows, key = { it.id }) { row ->

@@ -14,12 +14,10 @@ class CartRepositoryImpl(
     private val cartDao: CartDao,
     private val dispatchers: DispatchersProvider,
 ) : CartRepository {
-
-    override fun observeItems(): Flow<List<CartItem>> {
-        return cartDao.observeAll().map { entities ->
+    override fun observeItems(): Flow<List<CartItem>> =
+        cartDao.observeAll().map { entities ->
             entities.map { it.toDomain() }
         }
-    }
 
     override suspend fun addOrMerge(item: CartItem) {
         withContext(dispatchers.io) {
@@ -32,13 +30,20 @@ class CartRepositoryImpl(
         }
     }
 
-    override suspend fun updateQuantity(slug: String, size: String, quantity: Int) {
+    override suspend fun updateQuantity(
+        slug: String,
+        size: String,
+        quantity: Int,
+    ) {
         withContext(dispatchers.io) {
             cartDao.updateQuantity(slug, size, quantity)
         }
     }
 
-    override suspend fun remove(slug: String, size: String) {
+    override suspend fun remove(
+        slug: String,
+        size: String,
+    ) {
         withContext(dispatchers.io) {
             cartDao.remove(slug, size)
         }

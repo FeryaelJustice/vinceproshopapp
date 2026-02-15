@@ -66,7 +66,10 @@ private data class ProductSizeDraft(
 )
 
 private sealed interface ProductMediaDraft {
-    data class Existing(val url: String) : ProductMediaDraft
+    data class Existing(
+        val url: String,
+    ) : ProductMediaDraft
+
     data class New(
         val photo: GalleryPhotoResult,
         var bytesCache: ByteArray? = null,
@@ -121,38 +124,42 @@ fun AdminManageInventoryScreen(
     var openImagePicker by remember { mutableStateOf(false) }
     val isSaving = state.isSaving
 
-    val leafCategoryOptions = remember(state.categories, languageCode) {
-        buildCategorySelectOptions(state.categories, languageCode = languageCode, onlyLeaf = true)
-    }
+    val leafCategoryOptions =
+        remember(state.categories, languageCode) {
+            buildCategorySelectOptions(state.categories, languageCode = languageCode, onlyLeaf = true)
+        }
 
-    fun imageValidationMessage(reason: AdminImageValidationError): String {
-        return when (reason) {
-            AdminImageValidationError.Empty ->
+    fun imageValidationMessage(reason: AdminImageValidationError): String =
+        when (reason) {
+            AdminImageValidationError.Empty -> {
                 tr("Image file is empty", "El archivo de imagen esta vacio")
+            }
 
-            AdminImageValidationError.UnsupportedType ->
+            AdminImageValidationError.UnsupportedType -> {
                 tr(
                     "Image type is not supported. Use JPG/PNG/WEBP/AVIF",
                     "Tipo de imagen no soportado. Usa JPG/PNG/WEBP/AVIF",
                 )
+            }
 
-            AdminImageValidationError.TooLarge ->
+            AdminImageValidationError.TooLarge -> {
                 tr(
                     "Image exceeds $PRODUCT_IMAGE_MAX_FILE_SIZE_MB MB",
                     "La imagen excede $PRODUCT_IMAGE_MAX_FILE_SIZE_MB MB",
                 )
+            }
         }
-    }
 
     fun appendPickedPhotos(photos: List<GalleryPhotoResult>) {
         val current = draft ?: return
         if (photos.isEmpty()) return
         val availableSlots = availableProductImageSlots(current.mediaItems.size)
         if (availableSlots <= 0) {
-            localError = tr(
-                "Max $PRODUCT_IMAGE_MAX_COUNT images allowed",
-                "Maximo $PRODUCT_IMAGE_MAX_COUNT imagenes permitidas",
-            )
+            localError =
+                tr(
+                    "Max $PRODUCT_IMAGE_MAX_COUNT images allowed",
+                    "Maximo $PRODUCT_IMAGE_MAX_COUNT imagenes permitidas",
+                )
             return
         }
         val accepted = photos.take(availableSlots).map { ProductMediaDraft.New(photo = it) }
@@ -160,17 +167,20 @@ fun AdminManageInventoryScreen(
         draft = current.copy()
         localError = null
         if (photos.size > accepted.size) {
-            localError = tr(
-                "Only $availableSlots additional images were added",
-                "Solo se agregaron $availableSlots imagenes adicionales",
-            )
+            localError =
+                tr(
+                    "Only $availableSlots additional images were added",
+                    "Solo se agregaron $availableSlots imagenes adicionales",
+                )
         }
     }
 
     if (openImagePicker) {
-        val pickerMaxSelection = draft?.let { availableProductImageSlots(it.mediaItems.size) }
-            ?.coerceAtLeast(1)
-            ?: PRODUCT_IMAGE_MAX_COUNT
+        val pickerMaxSelection =
+            draft
+                ?.let { availableProductImageSlots(it.mediaItems.size) }
+                ?.coerceAtLeast(1)
+                ?: PRODUCT_IMAGE_MAX_COUNT
         GalleryPickerLauncher(
             mimeTypes = listOf(MimeType.IMAGE_WEBP, MimeType.IMAGE_JPEG, MimeType.IMAGE_PNG),
             onPhotosSelected = { photos ->
@@ -206,102 +216,127 @@ fun AdminManageInventoryScreen(
                 Button(
                     enabled = !state.isLoading && !isSaving,
                     onClick = {
-                        draft = ProductDraft(
-                            id = 0,
-                            name = "",
-                            nameEs = "",
-                            description = "",
-                            descriptionEs = "",
-                            vendor = "",
-                            categoryId = "",
-                            basePrice = "0",
-                            sizeRows = if (state.sizes.isEmpty()) emptyList() else {
-                                listOf(
-                                    ProductSizeDraft(
-                                        sizeId = state.sizes.first().id.toString(),
-                                        quantity = "0",
-                                        price = "0",
-                                        discount = "0",
-                                    )
-                                )
-                            },
-                            mediaItems = emptyList(),
-                        )
-                    }
+                        draft =
+                            ProductDraft(
+                                id = 0,
+                                name = "",
+                                nameEs = "",
+                                description = "",
+                                descriptionEs = "",
+                                vendor = "",
+                                categoryId = "",
+                                basePrice = "0",
+                                sizeRows =
+                                    if (state.sizes.isEmpty()) {
+                                        emptyList()
+                                    } else {
+                                        listOf(
+                                            ProductSizeDraft(
+                                                sizeId =
+                                                    state.sizes
+                                                        .first()
+                                                        .id
+                                                        .toString(),
+                                                quantity = "0",
+                                                price = "0",
+                                                discount = "0",
+                                            ),
+                                        )
+                                    },
+                                mediaItems = emptyList(),
+                            )
+                    },
                 ) { Text(tr("Add", "Agregar")) }
             }
         }
 
         when {
-            state.isLoading -> Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                CircularProgressIndicator()
+            state.isLoading -> {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    CircularProgressIndicator()
+                }
             }
 
-            (localError ?: state.error) != null -> Text(
-                (localError ?: state.error).orEmpty(),
-                color = MaterialTheme.colorScheme.error
-            )
+            (localError ?: state.error) != null -> {
+                Text(
+                    (localError ?: state.error).orEmpty(),
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
 
-            state.products.isEmpty() -> Text(tr("No products", "No hay productos"))
-            else -> LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                items(state.products, key = { it.id }) { product ->
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text("${product.name} (${product.slug})", fontWeight = FontWeight.SemiBold)
-                        Text(categoryBreadcrumb(product.categoryId, state.categories, languageCode))
-                        Text(
-                            "${
-                                tr(
-                                    "Status",
-                                    "Estado"
-                                )
-                            }: ${
-                                if (product.discontinued == 1) tr(
-                                    "Discontinued",
-                                    "Descontinuado"
-                                ) else tr("Active", "Activo")
-                            }"
-                        )
-                        product.sizes.forEach { size ->
-                            Text("- ${size.sizeName}: qty ${size.quantity}, ${formatEuro(size.price)}")
-                        }
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            TextButton(onClick = {
-                                draft = ProductDraft(
-                                    id = product.id,
-                                    name = product.name,
-                                    nameEs = product.nameEs,
-                                    description = product.description,
-                                    descriptionEs = product.descriptionEs,
-                                    vendor = product.vendor,
-                                    categoryId = product.categoryId,
-                                    basePrice = product.price.toString(),
-                                    sizeRows = product.sizes.map { size ->
-                                        ProductSizeDraft(
-                                            sizeId = size.sizeId.toString(),
-                                            quantity = size.quantity.toString(),
-                                            price = size.price.toString(),
-                                            discount = size.discount.toString(),
+            state.products.isEmpty() -> {
+                Text(tr("No products", "No hay productos"))
+            }
+
+            else -> {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    items(state.products, key = { it.id }) { product ->
+                        Column(
+                            modifier = Modifier.fillMaxWidth().padding(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text("${product.name} (${product.slug})", fontWeight = FontWeight.SemiBold)
+                            Text(categoryBreadcrumb(product.categoryId, state.categories, languageCode))
+                            Text(
+                                "${
+                                    tr(
+                                        "Status",
+                                        "Estado",
+                                    )
+                                }: ${
+                                    if (product.discontinued == 1) {
+                                        tr(
+                                            "Discontinued",
+                                            "Descontinuado",
                                         )
-                                    },
-                                    mediaItems = product.media.sortedBy(AdminInventoryMediaDto::position)
-                                        .map { ProductMediaDraft.Existing(it.url) },
-                                )
-                            }, enabled = !isSaving) {
-                                Text(tr("Edit", "Editar"))
+                                    } else {
+                                        tr("Active", "Activo")
+                                    }
+                                }",
+                            )
+                            product.sizes.forEach { size ->
+                                Text("- ${size.sizeName}: qty ${size.quantity}, ${formatEuro(size.price)}")
                             }
-                            TextButton(onClick = {
-                                viewModel.discontinueProduct(product.id)
-                            }, enabled = !isSaving) {
-                                Text(
-                                    tr("Discontinue", "Descontinuar"),
-                                    color = MaterialTheme.colorScheme.error
-                                )
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                TextButton(onClick = {
+                                    draft =
+                                        ProductDraft(
+                                            id = product.id,
+                                            name = product.name,
+                                            nameEs = product.nameEs,
+                                            description = product.description,
+                                            descriptionEs = product.descriptionEs,
+                                            vendor = product.vendor,
+                                            categoryId = product.categoryId,
+                                            basePrice = product.price.toString(),
+                                            sizeRows =
+                                                product.sizes.map { size ->
+                                                    ProductSizeDraft(
+                                                        sizeId = size.sizeId.toString(),
+                                                        quantity = size.quantity.toString(),
+                                                        price = size.price.toString(),
+                                                        discount = size.discount.toString(),
+                                                    )
+                                                },
+                                            mediaItems =
+                                                product.media
+                                                    .sortedBy(AdminInventoryMediaDto::position)
+                                                    .map { ProductMediaDraft.Existing(it.url) },
+                                        )
+                                }, enabled = !isSaving) {
+                                    Text(tr("Edit", "Editar"))
+                                }
+                                TextButton(onClick = {
+                                    viewModel.discontinueProduct(product.id)
+                                }, enabled = !isSaving) {
+                                    Text(
+                                        tr("Discontinue", "Descontinuar"),
+                                        color = MaterialTheme.colorScheme.error,
+                                    )
+                                }
                             }
                         }
                     }
@@ -320,10 +355,14 @@ fun AdminManageInventoryScreen(
             },
             title = {
                 Text(
-                    if (activeDraft.id == 0) tr(
-                        "Add Product",
-                        "Agregar producto"
-                    ) else tr("Edit Product", "Editar producto")
+                    if (activeDraft.id == 0) {
+                        tr(
+                            "Add Product",
+                            "Agregar producto",
+                        )
+                    } else {
+                        tr("Edit Product", "Editar producto")
+                    },
                 )
             },
             text = {
@@ -364,7 +403,7 @@ fun AdminManageInventoryScreen(
                         expanded = categoryExpanded,
                         onExpandedChange = {
                             if (!isSaving) categoryExpanded = !categoryExpanded
-                        }
+                        },
                     ) {
                         val selectedCategoryLabel =
                             leafCategoryOptions.firstOrNull { it.id == activeDraft.categoryId }?.label
@@ -383,8 +422,10 @@ fun AdminManageInventoryScreen(
                             label = { Text(tr("Category", "Categoria")) },
                             enabled = !isSaving,
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
-                            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                                .fillMaxWidth(),
+                            modifier =
+                                Modifier
+                                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                                    .fillMaxWidth(),
                         )
                         ExposedDropdownMenu(
                             expanded = categoryExpanded,
@@ -436,13 +477,13 @@ fun AdminManageInventoryScreen(
 
                     Text(
                         tr("Sizes and pricing", "Tallas y precios"),
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
                     )
                     activeDraft.sizeRows.forEachIndexed { index, row ->
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             var sizeExpanded by remember(activeDraft.id, index) {
                                 mutableStateOf(
-                                    false
+                                    false,
                                 )
                             }
                             ExposedDropdownMenuBox(
@@ -461,15 +502,18 @@ fun AdminManageInventoryScreen(
                                     enabled = !isSaving,
                                     trailingIcon = {
                                         ExposedDropdownMenuDefaults.TrailingIcon(
-                                            expanded = sizeExpanded
+                                            expanded = sizeExpanded,
                                         )
                                     },
-                                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                                        .fillMaxWidth(),
+                                    modifier =
+                                        Modifier
+                                            .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                                            .fillMaxWidth(),
                                 )
                                 ExposedDropdownMenu(
                                     expanded = sizeExpanded,
-                                    onDismissRequest = { sizeExpanded = false }) {
+                                    onDismissRequest = { sizeExpanded = false },
+                                ) {
                                     state.sizes.forEach { size ->
                                         DropdownMenuItem(
                                             text = { Text(size.name) },
@@ -481,7 +525,7 @@ fun AdminManageInventoryScreen(
                                                             it[index].copy(sizeId = size.id.toString())
                                                     }
                                                 draft = activeDraft.copy()
-                                            }
+                                            },
                                         )
                                     }
                                 }
@@ -556,7 +600,7 @@ fun AdminManageInventoryScreen(
                                 }, enabled = !isSaving) {
                                     Text(
                                         tr("Remove", "Quitar"),
-                                        color = MaterialTheme.colorScheme.error
+                                        color = MaterialTheme.colorScheme.error,
                                     )
                                 }
                             }
@@ -564,13 +608,19 @@ fun AdminManageInventoryScreen(
                     }
 
                     TextButton(onClick = {
-                        val defaultSizeId = state.sizes.firstOrNull()?.id?.toString().orEmpty()
-                        activeDraft.sizeRows = activeDraft.sizeRows + ProductSizeDraft(
-                            defaultSizeId,
-                            "0",
-                            activeDraft.basePrice,
-                            "0"
-                        )
+                        val defaultSizeId =
+                            state.sizes
+                                .firstOrNull()
+                                ?.id
+                                ?.toString()
+                                .orEmpty()
+                        activeDraft.sizeRows = activeDraft.sizeRows +
+                            ProductSizeDraft(
+                                defaultSizeId,
+                                "0",
+                                activeDraft.basePrice,
+                                "0",
+                            )
                         draft = activeDraft.copy()
                     }, enabled = !isSaving && state.sizes.isNotEmpty()) {
                         Text(tr("Add size row", "Agregar fila talla"))
@@ -578,7 +628,7 @@ fun AdminManageInventoryScreen(
 
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
                             tr(
@@ -592,14 +642,15 @@ fun AdminManageInventoryScreen(
                             onClick = {
                                 val slots = availableProductImageSlots(activeDraft.mediaItems.size)
                                 if (slots <= 0) {
-                                    localError = tr(
-                                        "Max $PRODUCT_IMAGE_MAX_COUNT images allowed",
-                                        "Maximo $PRODUCT_IMAGE_MAX_COUNT imagenes permitidas",
-                                    )
+                                    localError =
+                                        tr(
+                                            "Max $PRODUCT_IMAGE_MAX_COUNT images allowed",
+                                            "Maximo $PRODUCT_IMAGE_MAX_COUNT imagenes permitidas",
+                                        )
                                 } else {
                                     openImagePicker = true
                                 }
-                            }
+                            },
                         ) {
                             Text(tr("Pick images", "Seleccionar imagenes"))
                         }
@@ -608,20 +659,24 @@ fun AdminManageInventoryScreen(
                     activeDraft.mediaItems.forEachIndexed { index, media ->
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             when (media) {
-                                is ProductMediaDraft.Existing -> AsyncImage(
-                                    model = media.url,
-                                    contentDescription = tr("Existing image", "Imagen existente"),
-                                    modifier = Modifier.fillMaxWidth().height(120.dp),
-                                    contentScale = ContentScale.Crop,
-                                )
-
-                                is ProductMediaDraft.New -> media.photo.loadPainter()?.let {
-                                    Image(
-                                        painter = it,
-                                        contentDescription = tr("New image", "Imagen nueva"),
+                                is ProductMediaDraft.Existing -> {
+                                    AsyncImage(
+                                        model = media.url,
+                                        contentDescription = tr("Existing image", "Imagen existente"),
                                         modifier = Modifier.fillMaxWidth().height(120.dp),
                                         contentScale = ContentScale.Crop,
                                     )
+                                }
+
+                                is ProductMediaDraft.New -> {
+                                    media.photo.loadPainter()?.let {
+                                        Image(
+                                            painter = it,
+                                            contentDescription = tr("New image", "Imagen nueva"),
+                                            modifier = Modifier.fillMaxWidth().height(120.dp),
+                                            contentScale = ContentScale.Crop,
+                                        )
+                                    }
                                 }
                             }
 
@@ -652,7 +707,7 @@ fun AdminManageInventoryScreen(
                                 }, enabled = !isSaving) {
                                     Text(
                                         tr("Remove", "Quitar"),
-                                        color = MaterialTheme.colorScheme.error
+                                        color = MaterialTheme.colorScheme.error,
                                     )
                                 }
                             }
@@ -667,10 +722,11 @@ fun AdminManageInventoryScreen(
                         val cleanName = activeDraft.name.trim()
                         val cleanNameEs = activeDraft.nameEs.trim()
                         if (cleanName.isBlank() || cleanNameEs.isBlank()) {
-                            localError = tr(
-                                "Name and Name ES are required",
-                                "Nombre y Nombre ES son requeridos"
-                            )
+                            localError =
+                                tr(
+                                    "Name and Name ES are required",
+                                    "Nombre y Nombre ES son requeridos",
+                                )
                             return@TextButton
                         }
                         if (activeDraft.categoryId.isBlank()) {
@@ -680,18 +736,20 @@ fun AdminManageInventoryScreen(
 
                         val parsedBasePrice = activeDraft.basePrice.toDoubleOrNull()
                         if (parsedBasePrice == null || parsedBasePrice < 0.0) {
-                            localError = tr(
-                                "Display price must be a valid positive number",
-                                "El precio base debe ser un numero valido positivo"
-                            )
+                            localError =
+                                tr(
+                                    "Display price must be a valid positive number",
+                                    "El precio base debe ser un numero valido positivo",
+                                )
                             return@TextButton
                         }
 
                         if (activeDraft.sizeRows.isEmpty()) {
-                            localError = tr(
-                                "At least one size row is required",
-                                "Se requiere al menos una fila de talla"
-                            )
+                            localError =
+                                tr(
+                                    "At least one size row is required",
+                                    "Se requiere al menos una fila de talla",
+                                )
                             return@TextButton
                         }
 
@@ -704,60 +762,68 @@ fun AdminManageInventoryScreen(
                             val price = row.price.toDoubleOrNull()
                             val discount = row.discount.toDoubleOrNull()
                             if (sizeId == null) {
-                                localError = tr(
-                                    "Size row $rowNumber has invalid size",
-                                    "La fila de talla $rowNumber tiene una talla invalida",
-                                )
+                                localError =
+                                    tr(
+                                        "Size row $rowNumber has invalid size",
+                                        "La fila de talla $rowNumber tiene una talla invalida",
+                                    )
                                 return@TextButton
                             }
                             if (!seenSizeIds.add(sizeId)) {
-                                localError = tr(
-                                    "Duplicate size in row $rowNumber",
-                                    "Talla duplicada en la fila $rowNumber",
-                                )
+                                localError =
+                                    tr(
+                                        "Duplicate size in row $rowNumber",
+                                        "Talla duplicada en la fila $rowNumber",
+                                    )
                                 return@TextButton
                             }
                             if (quantity == null || quantity < 0) {
-                                localError = tr(
-                                    "Size row $rowNumber has invalid quantity",
-                                    "La fila de talla $rowNumber tiene cantidad invalida",
-                                )
+                                localError =
+                                    tr(
+                                        "Size row $rowNumber has invalid quantity",
+                                        "La fila de talla $rowNumber tiene cantidad invalida",
+                                    )
                                 return@TextButton
                             }
                             if (price == null || price < 0.0) {
-                                localError = tr(
-                                    "Size row $rowNumber has invalid price",
-                                    "La fila de talla $rowNumber tiene precio invalido",
-                                )
+                                localError =
+                                    tr(
+                                        "Size row $rowNumber has invalid price",
+                                        "La fila de talla $rowNumber tiene precio invalido",
+                                    )
                                 return@TextButton
                             }
                             if (discount == null || discount < 0.0 || discount > 100.0) {
-                                localError = tr(
-                                    "Size row $rowNumber has invalid discount (0-100)",
-                                    "La fila de talla $rowNumber tiene descuento invalido (0-100)",
-                                )
+                                localError =
+                                    tr(
+                                        "Size row $rowNumber has invalid discount (0-100)",
+                                        "La fila de talla $rowNumber tiene descuento invalido (0-100)",
+                                    )
                                 return@TextButton
                             }
-                            sizeRows += AdminInventorySizeInputDto(
-                                sizeId = sizeId,
-                                quantity = quantity,
-                                price = price,
-                                discount = discount,
-                            )
+                            sizeRows +=
+                                AdminInventorySizeInputDto(
+                                    sizeId = sizeId,
+                                    quantity = quantity,
+                                    price = price,
+                                    discount = discount,
+                                )
                         }
 
                         if (activeDraft.mediaItems.size < PRODUCT_IMAGE_MIN_COUNT) {
-                            localError = tr(
-                                "At least $PRODUCT_IMAGE_MIN_COUNT image is required",
-                                "Se requiere al menos $PRODUCT_IMAGE_MIN_COUNT imagen",
-                            )
+                            localError =
+                                tr(
+                                    "At least $PRODUCT_IMAGE_MIN_COUNT image is required",
+                                    "Se requiere al menos $PRODUCT_IMAGE_MIN_COUNT imagen",
+                                )
                             return@TextButton
                         }
                         if (activeDraft.mediaItems.size > PRODUCT_IMAGE_MAX_COUNT) {
-                            localError = tr(
-                                "Max $PRODUCT_IMAGE_MAX_COUNT images allowed",
-                                "Maximo $PRODUCT_IMAGE_MAX_COUNT imagenes permitidas",
-                            )
+                            localError =
+                                tr(
+                                    "Max $PRODUCT_IMAGE_MAX_COUNT images allowed",
+                                    "Maximo $PRODUCT_IMAGE_MAX_COUNT imagenes permitidas",
+                                )
                             return@TextButton
                         }
 
@@ -766,58 +832,66 @@ fun AdminManageInventoryScreen(
                         activeDraft.mediaItems.forEachIndexed { index, media ->
                             when (media) {
                                 is ProductMediaDraft.Existing -> {
-                                    mediaPlan += AdminMediaPlanItemDto(
-                                        type = "existing",
-                                        url = media.url
-                                    )
+                                    mediaPlan +=
+                                        AdminMediaPlanItemDto(
+                                            type = "existing",
+                                            url = media.url,
+                                        )
                                 }
 
                                 is ProductMediaDraft.New -> {
                                     val fileIndex = uploads.size
-                                    val bytes = media.bytesCache ?: media.photo.loadBytes()
-                                        .also { media.bytesCache = it }
-                                    val validationError = validatePickedImage(
-                                        bytes = bytes,
-                                        maxFileSizeMb = PRODUCT_IMAGE_MAX_FILE_SIZE_MB,
-                                    )
+                                    val bytes =
+                                        media.bytesCache ?: media.photo
+                                            .loadBytes()
+                                            .also { media.bytesCache = it }
+                                    val validationError =
+                                        validatePickedImage(
+                                            bytes = bytes,
+                                            maxFileSizeMb = PRODUCT_IMAGE_MAX_FILE_SIZE_MB,
+                                        )
                                     if (validationError != null) {
                                         localError = imageValidationMessage(validationError)
                                         return@TextButton
                                     }
-                                    val mimeType = media.mimeTypeCache
-                                        ?: detectImageMimeType(bytes)?.also {
-                                            media.mimeTypeCache = it
-                                        }
+                                    val mimeType =
+                                        media.mimeTypeCache
+                                            ?: detectImageMimeType(bytes)?.also {
+                                                media.mimeTypeCache = it
+                                            }
                                     if (mimeType.isNullOrBlank()) {
                                         localError =
                                             imageValidationMessage(AdminImageValidationError.UnsupportedType)
                                         return@TextButton
                                     }
                                     val extension = fileExtensionForImageMimeType(mimeType)
-                                    uploads += AdminUploadImage(
-                                        fileName = "product_${Clock.System.now()}_$index.$extension",
-                                        mimeType = mimeType,
-                                        bytes = bytes,
-                                    )
-                                    mediaPlan += AdminMediaPlanItemDto(
-                                        type = "new",
-                                        fileIndex = fileIndex
-                                    )
+                                    uploads +=
+                                        AdminUploadImage(
+                                            fileName = "product_${Clock.System.now()}_$index.$extension",
+                                            mimeType = mimeType,
+                                            bytes = bytes,
+                                        )
+                                    mediaPlan +=
+                                        AdminMediaPlanItemDto(
+                                            type = "new",
+                                            fileIndex = fileIndex,
+                                        )
                                 }
                             }
                         }
 
-                        val payload = AdminProductUpsertRequestDto(
-                            name = cleanName,
-                            nameEs = cleanNameEs,
-                            description = activeDraft.description,
-                            descriptionEs = activeDraft.descriptionEs,
-                            vendor = activeDraft.vendor,
-                            categoryId = activeDraft.categoryId,
-                            price = parsedBasePrice,
-                            sizes = sizeRows,
-                            mediaPlan = mediaPlan,
-                        )
+                        val payload =
+                            AdminProductUpsertRequestDto(
+                                name = cleanName,
+                                nameEs = cleanNameEs,
+                                description = activeDraft.description,
+                                descriptionEs = activeDraft.descriptionEs,
+                                vendor = activeDraft.vendor,
+                                categoryId = activeDraft.categoryId,
+                                price = parsedBasePrice,
+                                sizes = sizeRows,
+                                mediaPlan = mediaPlan,
+                            )
                         localError = null
                         viewModel.saveProduct(
                             productId = activeDraft.id,
@@ -825,14 +899,20 @@ fun AdminManageInventoryScreen(
                             uploads = uploads,
                         )
                         draft = null
-                    }, content = {
+                    },
+                    content = {
                         Text(
-                            if (isSaving) tr("Saving...", "Guardando...") else tr(
-                                "Save",
-                                "Guardar"
-                            )
+                            if (isSaving) {
+                                tr("Saving...", "Guardando...")
+                            } else {
+                                tr(
+                                    "Save",
+                                    "Guardar",
+                                )
+                            },
                         )
-                    })
+                    },
+                )
             },
             dismissButton = {
                 TextButton(
@@ -841,6 +921,7 @@ fun AdminManageInventoryScreen(
                 ) {
                     Text(tr("Cancel", "Cancelar"))
                 }
-            })
+            },
+        )
     }
 }

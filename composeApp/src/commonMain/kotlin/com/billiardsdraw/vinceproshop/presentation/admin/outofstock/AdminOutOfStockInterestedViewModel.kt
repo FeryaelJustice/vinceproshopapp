@@ -33,22 +33,23 @@ class AdminOutOfStockInterestedViewModel(
             _state.value = _state.value.copy(isLoading = true)
             runCatching { adminApi.stockInterestRequests() }
                 .onSuccess { rows ->
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        error = null,
-                        rows = rows,
-                    )
-                }
-                .onFailure { throwable ->
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        error = throwable.message ?: tr(
-                            "Could not load out-of-stock requests",
-                            "No se pudo cargar solicitudes sin stock",
-                        ),
-                    )
+                    _state.value =
+                        _state.value.copy(
+                            isLoading = false,
+                            error = null,
+                            rows = rows,
+                        )
+                }.onFailure { throwable ->
+                    _state.value =
+                        _state.value.copy(
+                            isLoading = false,
+                            error =
+                                throwable.message ?: tr(
+                                    "Could not load out-of-stock requests",
+                                    "No se pudo cargar solicitudes sin stock",
+                                ),
+                        )
                 }
         }
     }
 }
-

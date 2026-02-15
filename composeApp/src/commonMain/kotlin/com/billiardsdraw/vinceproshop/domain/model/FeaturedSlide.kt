@@ -20,10 +20,20 @@ data class FeaturedSlide(
     val isActive: Boolean,
 )
 
-fun FeaturedSlide.localizedTitle(languageCode: String): String {
-    return if (languageCode.startsWith("es", ignoreCase = true)) titleEs.ifBlank { title } else title
-}
+fun FeaturedSlide.localizedTitle(languageCode: String): String =
+    if (languageCode.startsWith("es", ignoreCase = true)) {
+        titleEs.ifBlank {
+            title
+        }
+    } else {
+        title
+    }
 
-fun FeaturedSlide.localizedSubtitle(languageCode: String): String {
-    return if (languageCode.startsWith("es", ignoreCase = true)) subtitleEs.ifBlank { subtitle } else subtitle
-}
+fun FeaturedSlide.localizedSubtitle(languageCode: String): String =
+    if (languageCode.startsWith("es", ignoreCase = true)) {
+        subtitleEs.ifBlank {
+            subtitle
+        }
+    } else {
+        subtitle
+    }
