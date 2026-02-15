@@ -11,17 +11,23 @@ import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
+import kotlinx.serialization.json.Json
 
 class KtorAccountApi(
     private val httpClient: HttpClient,
     private val baseUrl: String,
     private val tokenStore: AuthTokenStore,
+    private val json: Json,
 ) : AccountApi {
 
     override suspend fun login(identifier: String, password: String): LoginResponseDto {
+        val requestPayload = json.encodeToString(
+            serializer = LoginRequestDto.serializer(),
+            value = LoginRequestDto(identifier = identifier, password = password),
+        )
         val response = httpClient.post(url("auth/login")) {
             contentType(ContentType.Application.Json)
-            setBody(LoginRequestDto(identifier = identifier, password = password))
+            setBody(requestPayload)
         }
         val payload = response.body<LoginResponseDto>()
         val tokenFromPayload = payload.token

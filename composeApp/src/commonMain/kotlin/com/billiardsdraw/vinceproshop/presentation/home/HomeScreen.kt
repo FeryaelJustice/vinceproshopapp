@@ -18,6 +18,16 @@ import com.billiardsdraw.vinceproshop.presentation.components.EmptyState
 import com.billiardsdraw.vinceproshop.presentation.components.HeroCarousel
 import com.billiardsdraw.vinceproshop.presentation.components.ProductCard
 
+private enum class HomeItemType {
+    Hero,         // HeroCarousel
+    SectionTitle, // Text "Quick View"
+    Empty,        // EmptyState sin productos
+    ProductRow,   // LazyRow con ProductCard
+    ProductRows,  // Lazy Row con ProductCard items
+    Error,        // Text de errorMessage
+    RetryButton,  // Button "Reintentar"
+}
+
 @Composable
 fun HomeScreen(
     state: HomeUiState,
@@ -32,7 +42,7 @@ fun HomeScreen(
         contentPadding = PaddingValues(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
-        item {
+        item(contentType = HomeItemType.Hero) {
             HeroCarousel(
                 slides = state.featuredSlides,
                 languageCode = languageCode,
@@ -46,7 +56,7 @@ fun HomeScreen(
             )
         }
 
-        item {
+        item(contentType = HomeItemType.SectionTitle) {
             Text(
                 text = tr("Quick View", "Vista rapida"),
                 style = MaterialTheme.typography.headlineSmall,
@@ -55,7 +65,7 @@ fun HomeScreen(
         }
 
         if (state.quickViewProducts.isEmpty() && !state.isLoading) {
-            item {
+            item(contentType = HomeItemType.Empty) {
                 EmptyState(
                     title = tr("No products available", "No hay productos disponibles"),
                     description = tr(
@@ -66,12 +76,14 @@ fun HomeScreen(
             }
         }
 
-        item {
+        item(contentType = HomeItemType.ProductRow) {
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(horizontal = 16.dp),
             ) {
-                items(state.quickViewProducts, key = { it.slug }) { product ->
+                items(state.quickViewProducts, key = { it.slug }, contentType = {
+                    HomeItemType.ProductRows
+                }) { product ->
                     ProductCard(
                         product = product,
                         languageCode = languageCode,
@@ -84,14 +96,14 @@ fun HomeScreen(
         }
 
         state.errorMessage?.let {
-            item {
+            item(contentType = HomeItemType.Error) {
                 Text(
                     text = it,
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(horizontal = 16.dp),
                 )
             }
-            item {
+            item(contentType = HomeItemType.RetryButton) {
                 Button(onClick = onRetry, modifier = Modifier.padding(horizontal = 16.dp)) {
                     Text(text = tr("Retry", "Reintentar"))
                 }

@@ -23,7 +23,6 @@ class SearchViewModel(
     private val searchProducts: SearchProductsUseCase,
     dispatchers: DispatchersProvider,
 ) : ViewModel() {
-
     private val _state = MutableStateFlow(SearchUiState())
     val state: StateFlow<SearchUiState> = _state.asStateFlow()
 
@@ -32,20 +31,22 @@ class SearchViewModel(
             observeCatalog().collect { feed ->
                 val query = _state.value.query
                 val results = searchProducts(feed.products, query)
-                _state.value = _state.value.copy(
-                    allProducts = feed.products,
-                    results = results,
-                    isLoading = false,
-                )
+                _state.value =
+                    _state.value.copy(
+                        allProducts = feed.products,
+                        results = results,
+                        isLoading = false,
+                    )
             }
         }
     }
 
     fun onQueryChanged(value: String) {
         val results = searchProducts(_state.value.allProducts, value)
-        _state.value = _state.value.copy(
-            query = value,
-            results = results,
-        )
+        _state.value =
+            _state.value.copy(
+                query = value,
+                results = results,
+            )
     }
 }

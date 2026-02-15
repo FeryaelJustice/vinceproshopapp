@@ -9,16 +9,21 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.billiardsdraw.vinceproshop.core.currentLanguageCode
+import com.billiardsdraw.vinceproshop.core.LocalizationManager
+import com.billiardsdraw.vinceproshop.core.isRtlLanguageCode
+import com.billiardsdraw.vinceproshop.core.rememberCurrentLanguageCodeState
+import com.billiardsdraw.vinceproshop.core.rememberLanguageOptionState
 import com.billiardsdraw.vinceproshop.di.appModule
+import com.billiardsdraw.vinceproshop.presentation.admin.AdminPanelScreen
 import com.billiardsdraw.vinceproshop.presentation.account.AccountSheet
 import com.billiardsdraw.vinceproshop.presentation.account.AccountViewModel
 import com.billiardsdraw.vinceproshop.presentation.cart.CartScreen
@@ -41,9 +46,10 @@ import org.koin.compose.KoinApplication
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
+@Suppress("ModifierRequired","ktlint:standard:function-naming")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun App(modifier: Modifier = Modifier) {
+fun App() {
     KoinApplication(
         application = {
             modules(appModule)
@@ -51,7 +57,8 @@ fun App(modifier: Modifier = Modifier) {
     ) {
         VinceTheme {
             val navigator = remember { AppNavigator() }
-            val languageCode = currentLanguageCode()
+            val languageCode by rememberCurrentLanguageCodeState()
+            val languageOption by rememberLanguageOptionState()
 
             val homeViewModel = koinViewModel<HomeViewModel>(key = "home")
             val catalogViewModel = koinViewModel<CatalogViewModel>(key = "catalog")
@@ -75,116 +82,139 @@ fun App(modifier: Modifier = Modifier) {
                     AccountSheet(
                         state = accountState,
                         languageCode = languageCode,
+                        languageOption = languageOption,
+                        onLanguageOptionChange = LocalizationManager::setLanguageOption,
                         onLogin = accountViewModel::login,
                         onLogout = accountViewModel::logout,
                         onRefresh = accountViewModel::refresh,
                         onClearSavedCredential = accountViewModel::clearSavedCredential,
                         onDismissAuthError = accountViewModel::clearAuthError,
+                        onOpenAdminRoute = { route ->
+                            isAccountSheetVisible = false
+                            navigator.switchAdmin(route)
+                        },
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     )
                 }
             }
 
-            Scaffold(
-                modifier = Modifier.windowInsetsPadding(WindowInsets.systemBars),
-                topBar = {
-                    VinceTopBar(
-                        cartCount = cartState.totalItems,
-                        onCartClick = { navigator.openRoot(RootSection.Cart) },
-                    )
-                },
-                bottomBar = {
-                    if (navigator.current !is AppDestination.ProductDetail) {
-                        VinceBottomBar(
-                            selectedRoot = navigator.selectedSection(),
-                            isAccountSelected = isAccountSheetVisible,
-                            onSelectRoot = { section ->
-                                isAccountSheetVisible = false
-                                navigator.openRoot(section)
-                            },
-                            onAccountClick = {
-                                isAccountSheetVisible = true
-                                accountViewModel.refresh()
-                            },
+            CompositionLocalProvider(
+                androidx.compose.ui.platform.LocalLayoutDirection provides
+                    if (isRtlLanguageCode(languageCode)) LayoutDirection.Rtl else LayoutDirection.Ltr,
+            ) {
+                Scaffold(
+                    modifier = Modifier.windowInsetsPadding(WindowInsets.systemBars),
+                    topBar = {
+                        VinceTopBar(
+                            cartCount = cartState.totalItems,
+                            onCartClick = { navigator.openRoot(RootSection.Cart) },
                         )
-                    }
-                },
-                contentWindowInsets = WindowInsets(0, 0, 0, 0)
-            ) { padding ->
-                when (val destination = navigator.current) {
-                    is AppDestination.Root -> {
-                        when (destination.section) {
-                            RootSection.Home -> HomeScreen(
-                                state = homeState,
-                                languageCode = languageCode,
-                                onOpenProduct = { slug -> navigator.openProduct(slug) },
-                                onOpenCategory = { categoryId ->
-                                    catalogViewModel.onCategorySelected(categoryId)
-                                    navigator.openRoot(RootSection.Catalog)
+                    },
+                    bottomBar = {
+                        if (navigator.current !is AppDestination.ProductDetail &&
+                            navigator.current !is AppDestination.AdminRoute
+                        ) {
+                            VinceBottomBar(
+                                selectedRoot = navigator.selectedSection(),
+                                isAccountSelected = isAccountSheetVisible,
+                                onSelectRoot = { section ->
+                                    isAccountSheetVisible = false
+                                    navigator.openRoot(section)
                                 },
-                                onRetry = homeViewModel::retry,
-                                modifier = Modifier.padding(padding),
+                                onAccountClick = {
+                                    isAccountSheetVisible = true
+                                    accountViewModel.refresh()
+                                },
                             )
+                        }
+                    },
+                    contentWindowInsets = WindowInsets(0, 0, 0, 0)
+                ) { padding ->
+                    when (val destination = navigator.current) {
+                        is AppDestination.Root -> {
+                            when (destination.section) {
+                                RootSection.Home -> HomeScreen(
+                                    state = homeState,
+                                    languageCode = languageCode,
+                                    onOpenProduct = { slug -> navigator.openProduct(slug) },
+                                    onOpenCategory = { categoryId ->
+                                        catalogViewModel.onCategorySelected(categoryId)
+                                        navigator.openRoot(RootSection.Catalog)
+                                    },
+                                    onRetry = homeViewModel::retry,
+                                    modifier = Modifier.padding(padding),
+                                )
 
-                            RootSection.Catalog -> CatalogScreen(
-                                state = catalogState,
-                                languageCode = languageCode,
-                                onOpenProduct = { slug -> navigator.openProduct(slug) },
-                                onSelectCategory = catalogViewModel::onCategorySelected,
-                                onToggleBrand = catalogViewModel::onBrandToggled,
-                                onMinPriceChange = catalogViewModel::onMinPriceChanged,
-                                onMaxPriceChange = catalogViewModel::onMaxPriceChanged,
-                                onAvailabilityChange = catalogViewModel::onAvailabilityChanged,
-                                onSortChange = catalogViewModel::onSortChanged,
-                                onClearFilters = catalogViewModel::clearFilters,
-                                modifier = Modifier.padding(padding),
+                                RootSection.Catalog -> CatalogScreen(
+                                    state = catalogState,
+                                    languageCode = languageCode,
+                                    onOpenProduct = { slug -> navigator.openProduct(slug) },
+                                    onSelectCategory = catalogViewModel::onCategorySelected,
+                                    onToggleBrand = catalogViewModel::onBrandToggled,
+                                    onMinPriceChange = catalogViewModel::onMinPriceChanged,
+                                    onMaxPriceChange = catalogViewModel::onMaxPriceChanged,
+                                    onAvailabilityChange = catalogViewModel::onAvailabilityChanged,
+                                    onSortChange = catalogViewModel::onSortChanged,
+                                    onClearFilters = catalogViewModel::clearFilters,
+                                    modifier = Modifier.padding(padding),
+                                )
+
+                                RootSection.Search -> SearchScreen(
+                                    state = searchState,
+                                    languageCode = languageCode,
+                                    onQueryChange = searchViewModel::onQueryChanged,
+                                    onOpenProduct = { slug -> navigator.openProduct(slug) },
+                                    modifier = Modifier.padding(padding),
+                                )
+
+                                RootSection.Cart -> CartScreen(
+                                    state = cartState,
+                                    languageCode = languageCode,
+                                    onUpdateQuantity = cartViewModel::updateQuantity,
+                                    onRemove = cartViewModel::remove,
+                                    onClearAll = cartViewModel::clearAll,
+                                    onCustomerInfoChanged = cartViewModel::updateCustomerInfo,
+                                    onContinueToPayment = cartViewModel::continueToPayment,
+                                    onBackToShipping = cartViewModel::backToShipping,
+                                    onPaymentStarted = cartViewModel::onPaymentStarted,
+                                    onPaymentCompleted = cartViewModel::onPaymentCompleted,
+                                    onPaymentCanceled = cartViewModel::onPaymentCanceled,
+                                    onPaymentFailed = cartViewModel::onPaymentFailed,
+                                    onResetCheckout = cartViewModel::resetCheckoutFlow,
+                                    onDismissCheckoutFeedback = cartViewModel::dismissCheckoutFeedback,
+                                    modifier = Modifier.padding(padding),
+                                )
+                            }
+                        }
+
+                        is AppDestination.ProductDetail -> {
+                            val detailViewModel: ProductDetailViewModel = koinViewModel(
+                                key = "detail-${destination.slug}",
+                                parameters = { parametersOf(destination.slug) },
                             )
-
-                            RootSection.Search -> SearchScreen(
-                                state = searchState,
+                            val detailState by detailViewModel.state.collectAsStateWithLifecycle()
+                            ProductDetailScreen(
+                                state = detailState,
                                 languageCode = languageCode,
-                                onQueryChange = searchViewModel::onQueryChanged,
-                                onOpenProduct = { slug -> navigator.openProduct(slug) },
-                                modifier = Modifier.padding(padding),
-                            )
-
-                            RootSection.Cart -> CartScreen(
-                                state = cartState,
-                                languageCode = languageCode,
-                                onUpdateQuantity = cartViewModel::updateQuantity,
-                                onRemove = cartViewModel::remove,
-                                onClearAll = cartViewModel::clearAll,
-                                onCustomerInfoChanged = cartViewModel::updateCustomerInfo,
-                                onContinueToPayment = cartViewModel::continueToPayment,
-                                onBackToShipping = cartViewModel::backToShipping,
-                                onPaymentStarted = cartViewModel::onPaymentStarted,
-                                onPaymentCompleted = cartViewModel::onPaymentCompleted,
-                                onPaymentCanceled = cartViewModel::onPaymentCanceled,
-                                onPaymentFailed = cartViewModel::onPaymentFailed,
-                                onResetCheckout = cartViewModel::resetCheckoutFlow,
-                                onDismissCheckoutFeedback = cartViewModel::dismissCheckoutFeedback,
+                                onBack = navigator::back,
+                                onSelectSize = detailViewModel::onSizeSelected,
+                                onQuantityChange = detailViewModel::onQuantityChanged,
+                                onImageSelect = detailViewModel::onImageSelected,
+                                onAddToCart = detailViewModel::addCurrentSelectionToCart,
+                                onDismissMessage = detailViewModel::dismissMessage,
                                 modifier = Modifier.padding(padding),
                             )
                         }
-                    }
 
-                    is AppDestination.ProductDetail -> {
-                        val detailViewModel: ProductDetailViewModel = koinViewModel(
-                            key = "detail-${destination.slug}",
-                            parameters = { parametersOf(destination.slug) },
-                        )
-                        val detailState by detailViewModel.state.collectAsStateWithLifecycle()
-                        ProductDetailScreen(
-                            state = detailState,
-                            languageCode = languageCode,
-                            onBack = navigator::back,
-                            onSelectSize = detailViewModel::onSizeSelected,
-                            onQuantityChange = detailViewModel::onQuantityChanged,
-                            onImageSelect = detailViewModel::onImageSelected,
-                            onAddToCart = detailViewModel::addCurrentSelectionToCart,
-                            onDismissMessage = detailViewModel::dismissMessage,
-                            modifier = Modifier.padding(padding),
-                        )
+                        is AppDestination.AdminRoute -> {
+                            AdminPanelScreen(
+                                currentRoute = destination.route,
+                                languageCode = languageCode,
+                                onSelectRoute = navigator::switchAdmin,
+                                onBack = navigator::back,
+                                modifier = Modifier.padding(padding),
+                            )
+                        }
                     }
                 }
             }

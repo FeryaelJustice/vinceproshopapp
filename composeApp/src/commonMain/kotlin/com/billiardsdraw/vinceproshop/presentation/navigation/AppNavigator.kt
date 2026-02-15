@@ -15,6 +15,7 @@ enum class RootSection {
 sealed interface AppDestination {
     data class Root(val section: RootSection) : AppDestination
     data class ProductDetail(val slug: String, val source: RootSection) : AppDestination
+    data class AdminRoute(val route: String, val source: RootSection) : AppDestination
 }
 
 class AppNavigator {
@@ -33,9 +34,30 @@ class AppNavigator {
         val source = when (val destination = current) {
             is AppDestination.Root -> destination.section
             is AppDestination.ProductDetail -> destination.source
+            is AppDestination.AdminRoute -> destination.source
         }
         backstack += AppDestination.ProductDetail(slug, source)
         current = backstack.last()
+    }
+
+    fun openAdmin(route: String) {
+        val source = when (val destination = current) {
+            is AppDestination.Root -> destination.section
+            is AppDestination.ProductDetail -> destination.source
+            is AppDestination.AdminRoute -> destination.source
+        }
+        backstack += AppDestination.AdminRoute(route = route, source = source)
+        current = backstack.last()
+    }
+
+    fun switchAdmin(route: String) {
+        val currentDestination = current
+        if (currentDestination is AppDestination.AdminRoute) {
+            backstack[backstack.lastIndex] = currentDestination.copy(route = route)
+            current = backstack.last()
+            return
+        }
+        openAdmin(route)
     }
 
     fun back() {
@@ -49,6 +71,7 @@ class AppNavigator {
         return when (val destination = current) {
             is AppDestination.Root -> destination.section
             is AppDestination.ProductDetail -> destination.source
+            is AppDestination.AdminRoute -> destination.source
         }
     }
 }

@@ -43,7 +43,7 @@ data class CatalogUiState(
 class CatalogViewModel(
     private val observeCatalog: ObserveCatalogUseCase,
     private val refreshCatalog: RefreshCatalogUseCase,
-    private val dispatchers: DispatchersProvider,
+    dispatchers: DispatchersProvider,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CatalogUiState())

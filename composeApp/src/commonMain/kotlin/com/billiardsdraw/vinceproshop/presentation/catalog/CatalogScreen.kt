@@ -24,11 +24,10 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -38,6 +37,15 @@ import com.billiardsdraw.vinceproshop.domain.model.localizedName
 import com.billiardsdraw.vinceproshop.presentation.common.tr
 import com.billiardsdraw.vinceproshop.presentation.components.EmptyState
 import com.billiardsdraw.vinceproshop.presentation.components.ProductCard
+
+
+private enum class CatalogItemType {
+    FilterPanel,  // item de span completo con todos los filtros
+    Loading,      // Text "Cargando catalogo..."
+    Empty,        // EmptyState sin resultados
+    Product,      // ProductCard (cue y regular — mismo composable, mismo tipo)
+    Error,        // Text de errorMessage
+}
 
 data class CatalogRenderItem(
     val slug: String,
@@ -72,7 +80,7 @@ fun CatalogScreen(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item(span = { GridItemSpan(maxLineSpan) }) {
+        item(span = { GridItemSpan(maxLineSpan) }, contentType = CatalogItemType.FilterPanel) {
             FilterPanel(
                 state = state,
                 languageCode = languageCode,
@@ -87,7 +95,7 @@ fun CatalogScreen(
         }
 
         if (state.isLoading) {
-            item(span = { GridItemSpan(maxLineSpan) }) {
+            item(span = { GridItemSpan(maxLineSpan) }, contentType = CatalogItemType.Loading) {
                 Text(
                     text = tr("Loading catalog...", "Cargando catalogo..."),
                     modifier = Modifier.padding(8.dp),
@@ -96,7 +104,7 @@ fun CatalogScreen(
         }
 
         if (!state.isLoading && renderItems.isEmpty()) {
-            item(span = { GridItemSpan(maxLineSpan) }) {
+            item(span = { GridItemSpan(maxLineSpan) }, contentType = CatalogItemType.Empty) {
                 EmptyState(
                     title = tr("No results", "Sin resultados"),
                     description = tr(
@@ -111,6 +119,7 @@ fun CatalogScreen(
             items = renderItems,
             key = { it.slug },
             span = { item -> if (item.cue) GridItemSpan(maxLineSpan) else GridItemSpan(1) },
+            contentType = { CatalogItemType.Product }
         ) { entry ->
             val product =
                 (state.cueProducts + state.regularProducts).firstOrNull { it.slug == entry.slug }
@@ -124,7 +133,7 @@ fun CatalogScreen(
         }
 
         state.errorMessage?.let { message ->
-            item(span = { GridItemSpan(maxLineSpan) }) {
+            item(span = { GridItemSpan(maxLineSpan) }, contentType = CatalogItemType.Error) {
                 Text(
                     text = message,
                     color = MaterialTheme.colorScheme.error,

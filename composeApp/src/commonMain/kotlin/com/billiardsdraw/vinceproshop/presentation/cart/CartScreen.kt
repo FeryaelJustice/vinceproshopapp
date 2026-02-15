@@ -1,6 +1,7 @@
 package com.billiardsdraw.vinceproshop.presentation.cart
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -54,58 +55,65 @@ fun CartScreen(
     onDismissCheckoutFeedback: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (state.checkoutStep == CheckoutStep.Completed) {
-        CheckoutSuccess(
-            paymentIntentId = state.paymentIntentId,
-            onResetCheckout = onResetCheckout,
-            modifier = modifier,
-        )
-        return
-    }
+    Box(modifier = modifier.fillMaxSize()) {
+        when {
+            state.checkoutStep == CheckoutStep.Completed -> {
+                CheckoutSuccess(
+                    paymentIntentId = state.paymentIntentId,
+                    onResetCheckout = onResetCheckout,
+                    modifier = Modifier.fillMaxSize(),
+                )
+                return
+            }
 
-    if (!state.isLoading && state.items.isEmpty()) {
-        EmptyState(
-            title = tr("Your cart is empty", "Tu carrito esta vacio"),
-            description = tr(
-                "Add products from the catalog.",
-                "Agrega productos desde el catalogo.",
-            ),
-            modifier = modifier,
-        )
-        return
-    }
+            !state.isLoading && state.items.isEmpty() -> {
+                EmptyState(
+                    title = tr("Your cart is empty", "Tu carrito esta vacio"),
+                    description = tr(
+                        "Add products from the catalog.",
+                        "Agrega productos desde el catalogo.",
+                    ),
+                    modifier = Modifier.fillMaxSize(),
+                )
+                return
+            }
 
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(12.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        items(
-            items = state.items,
-            key = { "${it.slug}-${it.size}" },
-        ) { item ->
-            CartItemCard(
-                item = item,
-                languageCode = languageCode,
-                onUpdateQuantity = onUpdateQuantity,
-                onRemove = onRemove,
-            )
-        }
+            else -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    items(
+                        items = state.items,
+                        key = { "${it.slug}-${it.size}" },
+                        contentType = { "cartItems" }
+                    ) { item ->
+                        CartItemCard(
+                            item = item,
+                            languageCode = languageCode,
+                            onUpdateQuantity = onUpdateQuantity,
+                            onRemove = onRemove,
+                        )
+                    }
 
-        item {
-            CheckoutPanel(
-                state = state,
-                languageCode = languageCode,
-                onClearAll = onClearAll,
-                onCustomerInfoChanged = onCustomerInfoChanged,
-                onContinueToPayment = onContinueToPayment,
-                onBackToShipping = onBackToShipping,
-                onPaymentStarted = onPaymentStarted,
-                onPaymentCompleted = onPaymentCompleted,
-                onPaymentCanceled = onPaymentCanceled,
-                onPaymentFailed = onPaymentFailed,
-                onDismissCheckoutFeedback = onDismissCheckoutFeedback,
-            )
+                    item(contentType = { "checkoutPanel" }) {
+                        CheckoutPanel(
+                            state = state,
+                            languageCode = languageCode,
+                            onClearAll = onClearAll,
+                            onCustomerInfoChanged = onCustomerInfoChanged,
+                            onContinueToPayment = onContinueToPayment,
+                            onBackToShipping = onBackToShipping,
+                            onPaymentStarted = onPaymentStarted,
+                            onPaymentCompleted = onPaymentCompleted,
+                            onPaymentCanceled = onPaymentCanceled,
+                            onPaymentFailed = onPaymentFailed,
+                            onDismissCheckoutFeedback = onDismissCheckoutFeedback,
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -131,7 +139,10 @@ private fun CheckoutPanel(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Text(
-            text = tr("Subtotal: ${formatEuro(state.subtotal)}", "Subtotal: ${formatEuro(state.subtotal)}"),
+            text = tr(
+                "Subtotal: ${formatEuro(state.subtotal)}",
+                "Subtotal: ${formatEuro(state.subtotal)}"
+            ),
             style = MaterialTheme.typography.titleLarge,
         )
 

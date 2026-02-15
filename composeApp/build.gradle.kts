@@ -158,6 +158,7 @@ kotlin {
 
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor)
+            implementation(libs.imagepickerkmp)
 
             implementation(libs.room.runtime)
             implementation(libs.sqlite.bundled)

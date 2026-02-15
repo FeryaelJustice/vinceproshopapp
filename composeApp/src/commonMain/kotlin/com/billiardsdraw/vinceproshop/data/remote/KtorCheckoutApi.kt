@@ -19,7 +19,7 @@ class KtorCheckoutApi(
 
     override suspend fun createPaymentIntent(request: CreatePaymentIntentRequestDto): CreatePaymentIntentResponseDto {
         val token = tokenStore.readToken()
-        val response = httpClient.post(url("payments/create-intent")) {
+        val response = httpClient.post(url()) {
             applyAuthHeaders(token)
             contentType(ContentType.Application.Json)
             setBody(request)
@@ -36,7 +36,7 @@ class KtorCheckoutApi(
         return response.body()
     }
 
-    private fun url(path: String): String = "${baseUrl.trimEnd('/')}/$path"
+    private fun url(): String = "${baseUrl.trimEnd('/')}/payments/create-intent"
 
     private fun io.ktor.client.request.HttpRequestBuilder.applyAuthHeaders(token: String?) {
         val normalized = token?.trim().orEmpty()

@@ -41,11 +41,6 @@ fun HeroCarousel(
     onSlideClick: (FeaturedSlide) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (slides.isEmpty()) {
-        EmptyHero(modifier)
-        return
-    }
-
     var index by remember(slides.size) { mutableIntStateOf(0) }
 
     LaunchedEffect(slides.size) {
@@ -56,70 +51,77 @@ fun HeroCarousel(
         }
     }
 
-    val slide = slides[index]
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(320.dp)
-            .clip(MaterialTheme.shapes.large)
-            .clickable { onSlideClick(slide) },
-    ) {
-        AsyncImage(
-            model = slide.imageUrl,
-            contentDescription = slide.localizedTitle(languageCode),
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop,
-        )
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        0f to Color.Transparent,
-                        1f to Color.Black.copy(alpha = 0.65f),
-                    )
-                )
-        )
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Text(
-                text = slide.localizedTitle(languageCode),
-                style = MaterialTheme.typography.headlineSmall,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = slide.localizedSubtitle(languageCode),
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.White.copy(alpha = 0.88f),
-            )
+    Box(modifier = modifier) {
+        if (slides.isEmpty()) {
+            EmptyHero()
+            return
         }
 
-        Row(
+        val slide = slides[index]
+        Box(
             modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                .fillMaxWidth()
+                .height(320.dp)
+                .clip(MaterialTheme.shapes.large)
+                .clickable { onSlideClick(slide) },
         ) {
-            slides.indices.forEach { item ->
-                Box(
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(if (item == index) Color.White else Color.White.copy(alpha = 0.35f))
-                        .height(8.dp)
-                        .fillMaxWidth(fraction = 0.04f),
+            AsyncImage(
+                model = slide.imageUrl,
+                contentDescription = slide.localizedTitle(languageCode),
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            0f to Color.Transparent,
+                            1f to Color.Black.copy(alpha = 0.65f),
+                        )
+                    )
+            )
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Text(
+                    text = slide.localizedTitle(languageCode),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
                 )
+                Text(
+                    text = slide.localizedSubtitle(languageCode),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.88f),
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                slides.indices.forEach { item ->
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(if (item == index) Color.White else Color.White.copy(alpha = 0.35f))
+                            .height(8.dp)
+                            .fillMaxWidth(fraction = 0.04f),
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun EmptyHero(modifier: Modifier) {
+private fun EmptyHero(modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier
             .fillMaxWidth()

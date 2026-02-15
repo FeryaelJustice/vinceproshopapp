@@ -11,6 +11,7 @@ Aplicacion Kotlin Multiplatform (Android + iOS) para Vince Pro Shop, basada en e
 - Koin DI
 - Coil KMP (`coil-compose`, `coil-network-ktor3`)
 - Room Multiplatform + KSP + `sqlite-bundled`
+- ImagePickerKMP (`io.github.ismoy:imagepickerkmp:1.0.32`)
 
 ## Package / Company
 
@@ -33,6 +34,41 @@ Aplicacion Kotlin Multiplatform (Android + iOS) para Vince Pro Shop, basada en e
 - Carrito persistente en Room con subtotal
 - Checkout por steps (`shipping -> payment -> success`) usando Stripe
 - Tab de cuenta en bottom bar con login, pedidos usuario y secciones admin
+- Modulo admin completo en app KMP con rutas reales `admin/*`:
+  - `admin/orders`
+  - `admin/inventory`
+  - `admin/out-of-stock-interested`
+  - `admin/inventory/manage`
+  - `admin/categories/manage`
+  - `admin/cross-sell/manage`
+  - `admin/sizes/manage`
+  - `admin/featured/manage`
+  con tablas/listados y modales add/edit/delete.
+
+## Admin media upload (multiplatform)
+
+- Integrado `ImagePickerKMP` (`io.github.ismoy:imagepickerkmp:1.0.32`).
+- `Manage Categories`: seleccion de imagen unica + preview.
+- `Manage Inventory`: seleccion multiple, preview, reordenamiento y envio en orden exacto.
+- El envio de inventario replica el frontend web con:
+  - `multipart/form-data`
+  - campo `data` (JSON)
+  - archivos `images[]`
+  - `mediaPlan` (`existing` / `new(fileIndex)`) para preservar orden.
+- Hardening aplicado en KMP:
+  - limites equivalentes a web/backend (`min=1`, `max=20`, `max 20MB` por imagen de producto, `max 10MB` en categoria)
+  - validacion de tipo por firma binaria (`jpeg/png/webp/avif`)
+  - bloqueo de UI durante guardado y el modal no se cierra si falla el request
+  - soporte de categoria padre por selector jerarquico (no texto libre)
+
+## i18n KMP + RTL
+
+- Selector de idioma en runtime: `System`, `EN`, `ES`, `AR`.
+- Persistencia de preferencia por plataforma:
+  - Android: `SharedPreferences`.
+  - iOS: `NSUserDefaults`.
+- `LayoutDirection` dinamico por idioma resuelto (`RTL` para `ar/fa/he/ur`).
+- Integrado desde shared con `LocalizationManager` + `expect/actual`.
 
 ## Configuracion segura (`local.properties`)
 

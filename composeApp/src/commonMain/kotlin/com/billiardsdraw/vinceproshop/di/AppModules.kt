@@ -6,9 +6,11 @@ import com.billiardsdraw.vinceproshop.core.localHttpLogsEnabled
 import com.billiardsdraw.vinceproshop.data.local.VinceProShopDatabase
 import com.billiardsdraw.vinceproshop.data.local.createRoomDatabase
 import com.billiardsdraw.vinceproshop.data.remote.AccountApi
+import com.billiardsdraw.vinceproshop.data.remote.AdminApi
 import com.billiardsdraw.vinceproshop.data.remote.CatalogApi
 import com.billiardsdraw.vinceproshop.data.remote.CheckoutApi
 import com.billiardsdraw.vinceproshop.data.remote.KtorAccountApi
+import com.billiardsdraw.vinceproshop.data.remote.KtorAdminApi
 import com.billiardsdraw.vinceproshop.data.remote.KtorCatalogApi
 import com.billiardsdraw.vinceproshop.data.remote.KtorCheckoutApi
 import com.billiardsdraw.vinceproshop.data.remote.createPlatformHttpClient
@@ -41,6 +43,15 @@ import com.billiardsdraw.vinceproshop.domain.usecase.RemoveCartItemUseCase
 import com.billiardsdraw.vinceproshop.domain.usecase.SearchProductsUseCase
 import com.billiardsdraw.vinceproshop.domain.usecase.UpdateCartQuantityUseCase
 import com.billiardsdraw.vinceproshop.presentation.account.AccountViewModel
+import com.billiardsdraw.vinceproshop.presentation.admin.AdminPanelViewModel
+import com.billiardsdraw.vinceproshop.presentation.admin.inventory.AdminInventoryViewModel
+import com.billiardsdraw.vinceproshop.presentation.admin.manage.categories.AdminManageCategoriesViewModel
+import com.billiardsdraw.vinceproshop.presentation.admin.manage.crosssell.AdminManageCrossSellViewModel
+import com.billiardsdraw.vinceproshop.presentation.admin.manage.featured.AdminManageFeaturedViewModel
+import com.billiardsdraw.vinceproshop.presentation.admin.manage.inventory.AdminManageInventoryViewModel
+import com.billiardsdraw.vinceproshop.presentation.admin.manage.sizes.AdminManageSizesViewModel
+import com.billiardsdraw.vinceproshop.presentation.admin.orders.AdminOrdersViewModel
+import com.billiardsdraw.vinceproshop.presentation.admin.outofstock.AdminOutOfStockInterestedViewModel
 import com.billiardsdraw.vinceproshop.presentation.cart.CartViewModel
 import com.billiardsdraw.vinceproshop.presentation.catalog.CatalogViewModel
 import com.billiardsdraw.vinceproshop.presentation.home.HomeViewModel
@@ -76,7 +87,8 @@ val appModule = module {
     single { get<VinceProShopDatabase>().cartDao() }
 
     single<CatalogApi> { KtorCatalogApi(get(), get()) }
-    single<AccountApi> { KtorAccountApi(get(), get(), get()) }
+    single<AccountApi> { KtorAccountApi(get(), get(), get(), get()) }
+    single<AdminApi> { KtorAdminApi(get(), get(), get(), get()) }
     single<CheckoutApi> { KtorCheckoutApi(get(), get(), get()) }
 
     single<CatalogRepository> {
@@ -118,4 +130,13 @@ val appModule = module {
     viewModel { CartViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { AccountViewModel(get(), get(), get(), get(), get(), get(), get()) }
     viewModel { (slug: String) -> ProductDetailViewModel(slug, get(), get(), get(), get()) }
+    viewModel { AdminPanelViewModel() }
+    viewModel { AdminOrdersViewModel(get(), get()) }
+    viewModel { AdminInventoryViewModel(get(), get()) }
+    viewModel { AdminOutOfStockInterestedViewModel(get(), get()) }
+    viewModel { AdminManageInventoryViewModel(get(), get()) }
+    viewModel { AdminManageCategoriesViewModel(get(), get()) }
+    viewModel { AdminManageCrossSellViewModel(get(), get(), get()) }
+    viewModel { AdminManageSizesViewModel(get(), get()) }
+    viewModel { AdminManageFeaturedViewModel(get(), get(), get()) }
 }

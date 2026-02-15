@@ -18,6 +18,13 @@ import com.billiardsdraw.vinceproshop.presentation.common.tr
 import com.billiardsdraw.vinceproshop.presentation.components.EmptyState
 import com.billiardsdraw.vinceproshop.presentation.components.ProductCard
 
+private enum class SearchItemType {
+    SearchField, // OutlinedTextField de búsqueda
+    SectionTitle, // Text "Resultados"
+    Empty, // EmptyState (query vacío Y sin resultados — mismo composable)
+    Product, // ProductCard
+}
+
 @Composable
 fun SearchScreen(
     state: SearchUiState,
@@ -31,21 +38,23 @@ fun SearchScreen(
         contentPadding = PaddingValues(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item {
+        item(contentType = SearchItemType.SearchField) {
             OutlinedTextField(
                 value = state.query,
                 onValueChange = onQueryChange,
                 singleLine = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics {
-                        contentDescription = tr("Search products input", "Campo de busqueda de productos")
-                    },
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .semantics {
+                            contentDescription =
+                                tr("Search products input", "Campo de busqueda de productos")
+                        },
                 label = { Text(tr("Search products", "Buscar productos")) },
             )
         }
 
-        item {
+        item(contentType = SearchItemType.SectionTitle) {
             Text(
                 text = tr("Results", "Resultados"),
                 style = MaterialTheme.typography.titleLarge,
@@ -53,27 +62,33 @@ fun SearchScreen(
         }
 
         if (state.query.isBlank()) {
-            item {
+            item(contentType = SearchItemType.Empty) {
                 EmptyState(
                     title = tr("Start typing", "Empieza a escribir"),
-                    description = tr(
-                        "Search by product name or brand.",
-                        "Busca por nombre de producto o marca.",
-                    ),
+                    description =
+                        tr(
+                            "Search by product name or brand.",
+                            "Busca por nombre de producto o marca.",
+                        ),
                 )
             }
         } else if (state.results.isEmpty()) {
-            item {
+            item(contentType = SearchItemType.Empty) {
                 EmptyState(
                     title = tr("No matches", "Sin coincidencias"),
-                    description = tr(
-                        "Try another keyword.",
-                        "Prueba otra palabra clave.",
-                    ),
+                    description =
+                        tr(
+                            "Try another keyword.",
+                            "Prueba otra palabra clave.",
+                        ),
                 )
             }
         } else {
-            items(state.results, key = { it.slug }) { product ->
+            items(
+                state.results,
+                key = { it.slug },
+                contentType = { SearchItemType.Product },
+            ) { product ->
                 ProductCard(
                     product = product,
                     languageCode = languageCode,

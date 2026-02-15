@@ -12,11 +12,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.platform.LocalTextToolbar
 import androidx.compose.ui.platform.TextToolbar
 import androidx.compose.ui.platform.TextToolbarStatus
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -52,15 +54,38 @@ import vinceproshop_app.composeapp.generated.resources.Res
 import vinceproshop_app.composeapp.generated.resources.visibility
 import vinceproshop_app.composeapp.generated.resources.visibility_off
 
+private enum class AccountItemType {
+    Header,          // Row con título "Account" + botón Refresh
+    LanguageLabel,   // Text "Language"
+    LanguageChips,   // Row con los 4 FilterChip
+    Loading,         // CircularProgressIndicator (sesión Y pedidos, mismo composable)
+    LoginHint,       // Text explicativo de login
+    IdentifierField, // OutlinedTextField email/usuario
+    PasswordField,   // OutlinedTextField contraseña
+    ForgetCredential,// TextButton "Forget saved login"
+    LoginButton,     // Button "Log in"
+    AuthError,       // Text error de autenticación
+    UserCard,        // Surface con username/email/role
+    LogoutButton,    // Row con TextButton "Logout"
+    OrdersError,     // Text error cargando pedidos
+    SectionTitle,    // Text de título de sección (Admin Sections, Recent Orders, My Orders)
+    AdminSection,    // Row clickable de cada sección admin
+    Order,           // OrderCard (admin y user comparten el mismo composable)
+    EmptyOrders,     // Text "No orders yet" / "No hay pedidos"
+}
+
 @Composable
 fun AccountSheet(
     state: AccountUiState,
     languageCode: String,
+    languageOption: String,
+    onLanguageOptionChange: (String) -> Unit,
     onLogin: (identifier: String, password: String) -> Unit,
     onLogout: () -> Unit,
     onRefresh: () -> Unit,
     onClearSavedCredential: () -> Unit,
     onDismissAuthError: () -> Unit,
+    onOpenAdminRoute: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var identifier by rememberSaveable { mutableStateOf("") }
@@ -82,7 +107,7 @@ fun AccountSheet(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item {
+        item(contentType = AccountItemType.Header) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -98,9 +123,44 @@ fun AccountSheet(
                 }
             }
         }
+        item(contentType = AccountItemType.LanguageLabel) {
+            Text(
+                text = tr("Language", "Idioma", "اللغة"),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        item(contentType = AccountItemType.LanguageChips) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                LanguageChip(
+                    label = tr("System", "Sistema", "النظام"),
+                    selected = languageOption.equals("system", ignoreCase = true),
+                    onClick = { onLanguageOptionChange("system") },
+                )
+                LanguageChip(
+                    label = "EN",
+                    selected = languageOption.equals("en", ignoreCase = true),
+                    onClick = { onLanguageOptionChange("en") },
+                )
+                LanguageChip(
+                    label = "ES",
+                    selected = languageOption.equals("es", ignoreCase = true),
+                    onClick = { onLanguageOptionChange("es") },
+                )
+                LanguageChip(
+                    label = "AR",
+                    selected = languageOption.equals("ar", ignoreCase = true),
+                    onClick = { onLanguageOptionChange("ar") },
+                )
+            }
+        }
 
         if (state.isLoadingSession) {
-            item {
+            item(contentType = AccountItemType.Loading) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                     horizontalArrangement = Arrangement.Center,
@@ -113,7 +173,7 @@ fun AccountSheet(
 
         val user = state.user
         if (user == null) {
-            item {
+            item(contentType = AccountItemType.LoginHint) {
                 Text(
                     text = tr(
                         "Log in to see your orders or admin panel.",
@@ -122,7 +182,7 @@ fun AccountSheet(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            item {
+            item(contentType = AccountItemType.IdentifierField) {
                 OutlinedTextField(
                     value = identifier,
                     onValueChange = {
@@ -153,7 +213,7 @@ fun AccountSheet(
                         },
                 )
             }
-            item {
+            item(contentType = AccountItemType.PasswordField) {
                 CompositionLocalProvider(LocalTextToolbar provides DisabledTextToolbar) {
                     OutlinedTextField(
                         value = password,
@@ -205,7 +265,7 @@ fun AccountSheet(
                 }
             }
             if (state.savedCredential != null) {
-                item {
+                item(contentType = AccountItemType.ForgetCredential) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End,
@@ -216,7 +276,7 @@ fun AccountSheet(
                     }
                 }
             }
-            item {
+            item(contentType = AccountItemType.LoginButton) {
                 Button(
                     onClick = { onLogin(identifier, password) },
                     modifier = Modifier.fillMaxWidth(),
@@ -233,7 +293,7 @@ fun AccountSheet(
                 }
             }
             if (state.authError != null) {
-                item {
+                item(contentType = AccountItemType.AuthError) {
                     Text(
                         text = if (isSpanish) "Error de login: ${state.authError}" else "Login error: ${state.authError}",
                         color = MaterialTheme.colorScheme.error,
@@ -243,7 +303,7 @@ fun AccountSheet(
             return@LazyColumn
         }
 
-        item {
+        item(contentType = AccountItemType.UserCard) {
             Surface(
                 shape = RoundedCornerShape(12.dp),
                 tonalElevation = 2.dp,
@@ -271,7 +331,7 @@ fun AccountSheet(
             }
         }
 
-        item {
+        item(contentType = AccountItemType.LogoutButton) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 TextButton(onClick = onLogout) {
                     Text(tr("Logout", "Cerrar sesion"), color = MaterialTheme.colorScheme.error)
@@ -280,7 +340,7 @@ fun AccountSheet(
         }
 
         if (state.isLoadingOrders) {
-            item {
+            item(contentType = AccountItemType.Loading) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
@@ -292,7 +352,7 @@ fun AccountSheet(
         }
 
         if (state.ordersError != null) {
-            item {
+            item(contentType = AccountItemType.OrdersError) {
                 Text(
                     text = if (isSpanish) "Error cargando pedidos: ${state.ordersError}" else "Orders load error: ${state.ordersError}",
                     color = MaterialTheme.colorScheme.error,
@@ -301,17 +361,21 @@ fun AccountSheet(
         }
 
         if (user.role.equals("admin", ignoreCase = true)) {
-            item {
+            item(contentType = AccountItemType.SectionTitle) {
                 Text(
                     text = tr("Admin Sections", "Secciones Admin"),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
             }
-            items(state.adminSections, key = { it.route }) { section ->
+            items(
+                state.adminSections,
+                key = { it.route },
+                contentType = { AccountItemType.AdminSection }) { section ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .clickable { onOpenAdminRoute(section.route) }
                         .background(
                             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
                             shape = RoundedCornerShape(10.dp),
@@ -336,7 +400,7 @@ fun AccountSheet(
                 }
             }
 
-            item {
+            item(contentType = AccountItemType.SectionTitle) {
                 Text(
                     text = tr("Recent Orders", "Pedidos recientes"),
                     style = MaterialTheme.typography.titleMedium,
@@ -345,19 +409,22 @@ fun AccountSheet(
                 )
             }
             if (state.adminOrders.isEmpty()) {
-                item {
+                item(contentType = AccountItemType.EmptyOrders) {
                     Text(
                         text = tr("No admin orders yet.", "Sin pedidos admin aun."),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             } else {
-                items(state.adminOrders.take(8), key = { it.id }) { order ->
+                items(
+                    state.adminOrders.take(8),
+                    key = { it.id },
+                    contentType = { AccountItemType.Order }) { order ->
                     OrderCard(order = order, languageCode = languageCode)
                 }
             }
         } else {
-            item {
+            item(contentType = AccountItemType.SectionTitle) {
                 Text(
                     text = tr("My Orders", "Mis pedidos"),
                     style = MaterialTheme.typography.titleMedium,
@@ -365,19 +432,32 @@ fun AccountSheet(
                 )
             }
             if (state.userOrders.isEmpty()) {
-                item {
+                item(contentType = AccountItemType.EmptyOrders) {
                     Text(
                         text = tr("No orders found.", "No hay pedidos."),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             } else {
-                items(state.userOrders, key = { it.id }) { order ->
+                items(state.userOrders, key = { it.id }, contentType = { AccountItemType.Order }) { order ->
                     OrderCard(order = order, languageCode = languageCode)
                 }
             }
         }
     }
+}
+
+@Composable
+private fun LanguageChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = { Text(label) },
+    )
 }
 
 private object DisabledTextToolbar : TextToolbar {

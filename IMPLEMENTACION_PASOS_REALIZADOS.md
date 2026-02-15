@@ -212,3 +212,141 @@ Con:
 
 ## Pendiente Operativo (Manual, no codigo)
 En iOS/Xcode debes confirmar que el target `iosApp` tenga agregado el producto SPM `StripePaymentSheet`.
+
+## Paso 15: Modulo Admin Completo En App KMP (Rutas `admin/*`)
+Se implemento navegacion y pantallas admin equivalentes al frontend web, integradas en Compose Multiplatform.
+
+Cambios clave:
+- Navegacion:
+  - `presentation/navigation/AppNavigator.kt`
+    - nuevo destino `AppDestination.AdminRoute(route, source)`.
+    - nuevos metodos `openAdmin(...)` y `switchAdmin(...)`.
+  - `App.kt`
+    - render de `AdminPanelScreen` cuando el destino actual es `AdminRoute`.
+    - hide de bottom bar en admin.
+- Account/Admin launcher:
+  - `presentation/account/AccountSheet.kt`
+    - las filas de secciones admin ahora son clickeables.
+    - callback nuevo `onOpenAdminRoute(route)`.
+
+## Paso 16: API Admin En Shared (Ktor)
+Se agrego capa remota admin con contratos y DTOs para todos los CRUD del panel:
+
+Archivos nuevos:
+- `data/remote/AdminApi.kt`
+- `data/remote/AdminDto.kt`
+- `data/remote/KtorAdminApi.kt`
+- `data/remote/LenientSerializers.kt`
+
+Endpoints cubiertos:
+- `GET /admin/orders`
+- `PUT /admin/orders/:id/status`
+- `GET /admin/inventory`
+- `POST /admin/inventory`
+- `PUT /admin/inventory/:id`
+- `DELETE /admin/inventory/:id`
+- `GET /admin/inventory/stock-interest-requests`
+- `GET/POST/PUT/DELETE /admin/inventory/sizes`
+- `GET/POST/PUT/DELETE /admin/inventory/categories`
+- `GET/PUT /admin/inventory/navbar`
+- `GET/POST/PUT/DELETE /admin/inventory/featured`
+- `GET/POST/PUT/DELETE /admin/inventory/cross-sell/rules`
+- `PUT /admin/inventory/cross-sell/analytics/:productId/control`
+- `POST /admin/inventory/cross-sell/analytics/:productId/recompute`
+
+Notas:
+- auth admin por `Authorization: Bearer` + cookie `token=...`.
+- `multipart/form-data` para productos/categorias con media.
+- soporte `mediaPlan` para preservar orden de imagenes y mezcla existing/new como en web.
+
+## Paso 17: Pantallas Admin Por Secciones (Padre/Hijo)
+Se creo estructura por carpetas para mantener jerarquia y orden:
+
+- `presentation/admin/common/AdminShell.kt`
+- `presentation/admin/navigation/AdminRoutes.kt`
+- `presentation/admin/AdminPanelScreen.kt`
+- `presentation/admin/orders/AdminOrdersScreen.kt`
+- `presentation/admin/inventory/AdminInventoryScreen.kt`
+- `presentation/admin/outofstock/AdminOutOfStockInterestedScreen.kt`
+- `presentation/admin/manage/sizes/AdminManageSizesScreen.kt`
+- `presentation/admin/manage/featured/AdminManageFeaturedScreen.kt`
+- `presentation/admin/manage/categories/AdminManageCategoriesScreen.kt`
+- `presentation/admin/manage/crosssell/AdminManageCrossSellScreen.kt`
+- `presentation/admin/manage/inventory/AdminManageInventoryScreen.kt`
+
+Capacidades implementadas:
+- tablas/listados admin en Compose.
+- modales de add/edit para sizes, featured, categories, cross-sell, inventory.
+- acciones CRUD y refresh por pantalla.
+- navbar admin por grupos (Overview / Management) similar a web.
+
+## Paso 18: Upload De Imagenes Multiplataforma Con ImagePickerKMP
+Se integro `ImagePickerKMP` version `1.0.32` para seleccion de imagenes:
+- dependencia agregada en:
+  - `gradle/libs.versions.toml`
+  - `composeApp/build.gradle.kts`
+
+Uso en pantallas:
+- `AdminManageCategoriesScreen`
+  - seleccion de 1 imagen, preview y envio multipart.
+- `AdminManageInventoryScreen`
+  - seleccion multiple (`allowMultiple = true`, `maxSelection = 10`).
+  - preview de imagenes (existing/new).
+  - reordenamiento con controles up/down.
+  - construccion de `mediaPlan` + `uploads` para replicar orden exacto del frontend web.
+
+Estrategia de cache de preview:
+- `ProductMediaDraft.New` conserva referencia `PhotoResult` y cache de bytes (`bytesCache`) para evitar reler bytes en envios repetidos del modal.
+
+## Paso 19: DI / Wiring
+Se registro `AdminApi` en Koin:
+- `di/AppModules.kt` -> `single<AdminApi> { KtorAdminApi(get(), get(), get(), get()) }`
+
+## Paso 20: i18n KMP En Runtime + RTL (Shared + expect/actual)
+Se implemento selector de idioma en runtime y direccion RTL/LTR dinamica, alineado al enfoque KMP:
+- `core/Localization.kt`
+  - `LocalizationManager` con estado reactivo:
+    - `languageOption` (`system`, `en`, `es`, `ar`)
+    - `resolvedLanguageCode`
+  - helpers Compose:
+    - `rememberCurrentLanguageCodeState()`
+    - `rememberLanguageOptionState()`
+  - detector RTL: `isRtlLanguageCode(...)`.
+- Android actual:
+  - `core/Localization.android.kt`
+  - persistencia de opcion en `SharedPreferences`.
+- iOS actual:
+  - `core/Localization.ios.kt`
+  - persistencia en `NSUserDefaults`.
+- `App.kt`:
+  - aplica `LocalLayoutDirection` dinamico (`Rtl`/`Ltr`) segun idioma resuelto.
+  - `AccountSheet` controla cambio de idioma con chips `System/EN/ES/AR`.
+
+## Paso 21: Hardening Admin Media + Fix Login Serialization
+Se reforzo el flujo de media para que sea equivalente al frontend web/backend:
+- Nuevo archivo `presentation/admin/AdminMediaRules.kt` con reglas compartidas:
+  - `PRODUCT_IMAGE_MIN_COUNT = 1`
+  - `PRODUCT_IMAGE_MAX_COUNT = 20`
+  - `PRODUCT_IMAGE_MAX_FILE_SIZE_MB = 20`
+  - `CATEGORY_IMAGE_MAX_FILE_SIZE_MB = 10`
+  - validacion de MIME por firma binaria (`jpeg/png/webp/avif`).
+- `AdminManageInventoryScreen`:
+  - respeta limite maximo de imagenes al seleccionar.
+  - valida cantidad min/max antes de guardar.
+  - valida tamaño/tipo de cada nueva imagen antes de upload.
+  - preserva `mimeType` real y extension al construir `AdminUploadImage`.
+  - valida filas de talla (size unica por fila, cantidad/precio/descuento validos).
+  - bloquea acciones durante guardado y no cierra modal si falla.
+- `AdminManageCategoriesScreen`:
+  - valida imagen seleccionada (tipo/tamaño) al pick.
+  - selector de categoria padre jerarquico (sin texto libre).
+  - evita asignar la categoria como su propio padre.
+  - bloquea acciones durante guardado y no cierra modal si falla.
+- `KtorAccountApi`:
+  - login usa serializacion JSON explicita (`Json.encodeToString(...)`) para evitar el error de request body por reflection.
+  - `AppModules.kt` actualizado para inyectar `Json` en `KtorAccountApi`.
+
+## Estado De Verificacion
+- Se intento compilacion con `:composeApp:compileKotlinMetadata`.
+- No fue posible completar build por restriccion de red del entorno (no se pudo descargar el wrapper de Gradle).
+- Queda pendiente validacion final de compilacion en entorno con red habilitada.

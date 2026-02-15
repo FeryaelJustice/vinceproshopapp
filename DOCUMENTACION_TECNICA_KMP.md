@@ -53,8 +53,12 @@ Contiene:
   - `DispatchersProvider`: interfaz para `main/io/default`.
   - `StandardDispatchers`: implementacion real.
 - `core/Localization.kt`
-  - `expect fun currentLanguageCode()`
-  - `fun isSpanishLanguage()` helper.
+  - `LocalizationManager` con idioma en runtime (`system/en/es/ar`).
+  - `rememberCurrentLanguageCodeState()` y `rememberLanguageOptionState()`.
+  - `isRtlLanguageCode(...)` para `ar/fa/he/ur`.
+  - expect/actual de persistencia de preferencia:
+    - Android: `SharedPreferences`.
+    - iOS: `NSUserDefaults`.
 - `core/CurrencyFormatter.kt`
   - `fun formatEuro(value)` para mostrar importes.
 
@@ -668,3 +672,133 @@ C:\Users\nano9\AndroidStudioProjects\vinceproshop-app\composeApp\src\commonMain\
 C:\Users\nano9\AndroidStudioProjects\vinceproshop-app\composeApp\src\commonMain\kotlin\com\billiardsdraw\vinceproshop\data\remote\KtorAccountApi.kt:33:        return httpClient.get(url("admin/orders")).body()
 C:\Users\nano9\AndroidStudioProjects\vinceproshop-app\composeApp\src\commonMain\kotlin\com\billiardsdraw\vinceproshop\data\remote\KtorAccountApi.kt:36:    private fun url(path: String): String = "${baseUrl.trimEnd('/')}/$path"
 ```
+
+## 12) Actualizacion Admin KMP (2026-02-15)
+
+### 12.1 Navegacion admin como rutas reales
+Se extendio `AppNavigator` para soportar destinos `admin/*` como pantallas normales (no solo texto en sheet):
+- `AppDestination.AdminRoute(route, source)`
+- `openAdmin(route)`
+- `switchAdmin(route)`
+
+En `App.kt`:
+- se renderiza `AdminPanelScreen` para rutas admin.
+- bottom bar se oculta cuando la ruta actual es admin.
+
+En `AccountSheet`:
+- secciones admin clickeables con `onOpenAdminRoute(route)`.
+
+### 12.2 Estructura por secciones padre/hijo
+Se agrego modulo `presentation/admin` con organizacion por carpetas:
+- `orders`
+- `inventory`
+- `outofstock`
+- `manage/sizes`
+- `manage/featured`
+- `manage/categories`
+- `manage/crosssell`
+- `manage/inventory`
+
+Archivo de rutas:
+- `presentation/admin/navigation/AdminRoutes.kt`
+
+Layout comun admin:
+- `presentation/admin/common/AdminShell.kt`
+
+Router admin:
+- `presentation/admin/AdminPanelScreen.kt`
+
+### 12.3 Capa remota admin
+Nueva capa remota en shared:
+- `data/remote/AdminApi.kt`
+- `data/remote/AdminDto.kt`
+- `data/remote/KtorAdminApi.kt`
+- `data/remote/LenientSerializers.kt`
+
+Incluye CRUD para:
+- orders/status
+- inventory (list/create/update/discontinue)
+- stock-interest requests
+- sizes
+- categories
+- navbar config
+- featured
+- cross-sell rules + analytics control/recompute
+
+`KtorAdminApi` usa auth por:
+- `Authorization: Bearer <token>`
+- `Cookie: token=<token>`
+
+### 12.4 Subida de imagenes multiplataforma
+Se integro `ImagePickerKMP` `1.0.32` en common:
+- dependencia en `libs.versions.toml` y `composeApp/build.gradle.kts`.
+
+Uso:
+- `AdminManageCategoriesScreen`: single image + preview.
+- `AdminManageInventoryScreen`: multiple images + preview + reordenamiento.
+
+Se replica flujo web de media en inventory mediante:
+- `mediaPlan` (existing/new + fileIndex)
+- payload `data` JSON + `images[]` multipart
+- preservacion de orden de imagenes hacia backend.
+
+### 12.5 Endpoints admin usados por KMP
+- `GET /admin/orders`
+- `PUT /admin/orders/{id}/status`
+- `GET /admin/inventory`
+- `POST /admin/inventory`
+- `PUT /admin/inventory/{id}`
+- `DELETE /admin/inventory/{id}`
+- `GET /admin/inventory/stock-interest-requests`
+- `GET /admin/inventory/sizes`
+- `POST /admin/inventory/sizes`
+- `PUT /admin/inventory/sizes/{id}`
+- `DELETE /admin/inventory/sizes/{id}`
+- `GET /admin/inventory/categories`
+- `POST /admin/inventory/categories`
+- `PUT /admin/inventory/categories/{id}`
+- `DELETE /admin/inventory/categories/{id}`
+- `GET /admin/inventory/navbar`
+- `PUT /admin/inventory/navbar`
+- `GET /admin/inventory/featured`
+- `POST /admin/inventory/featured`
+- `PUT /admin/inventory/featured/{id}`
+- `DELETE /admin/inventory/featured/{id}`
+- `GET /admin/inventory/cross-sell/rules`
+- `POST /admin/inventory/cross-sell/rules`
+- `PUT /admin/inventory/cross-sell/rules/{id}`
+- `DELETE /admin/inventory/cross-sell/rules/{id}`
+- `PUT /admin/inventory/cross-sell/analytics/{productId}/control`
+- `POST /admin/inventory/cross-sell/analytics/{productId}/recompute`
+
+### 12.6 Limitacion de verificacion en este entorno
+No fue posible ejecutar compilacion final por restriccion de red del entorno (wrapper Gradle no descargable). Se requiere validar build en entorno con salida a internet.
+
+## 13) Actualizacion Extra (2026-02-15)
+
+### 13.1 i18n Runtime + RTL En App
+- `App.kt` aplica `LocalLayoutDirection` dinamico segun idioma resuelto.
+- `AccountSheet` expone selector `System/EN/ES/AR`.
+- La preferencia de idioma queda persistida por plataforma y se resuelve en shared.
+
+### 13.2 Hardening De Media Admin
+- Nuevo shared helper: `presentation/admin/AdminMediaRules.kt`.
+- Reglas alineadas al backend/web:
+  - productos: minimo 1, maximo 20, maximo 20MB por imagen.
+  - categorias: maximo 10MB por imagen.
+  - tipos permitidos: `jpeg/png/webp/avif`.
+- Validacion de tipo por firma binaria (no solo extension).
+- `AdminManageInventoryScreen`:
+  - limita seleccion por slots disponibles.
+  - valida filas de talla y media antes de enviar.
+  - conserva orden por `mediaPlan` y usa MIME real.
+  - bloquea acciones durante guardado y mantiene modal si falla.
+- `AdminManageCategoriesScreen`:
+  - valida imagen al pick.
+  - parent category via selector jerarquico.
+  - evita autorreferencia (categoria padre == categoria actual).
+  - bloquea acciones durante guardado y mantiene modal si falla.
+
+### 13.3 Estabilidad Del Login Request
+- `KtorAccountApi` serializa el body de login con `Json.encodeToString(...)` y lo envia como `application/json`.
+- Objetivo: evitar fallo de runtime al preparar body en entornos Kotlin/Native sin reflection.
