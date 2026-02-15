@@ -120,9 +120,9 @@ private class StripePaymentSheetBridge {
             }
 
             NSNotificationCenter.defaultCenter.postNotificationName(
-                name = REQUEST_NOTIFICATION,
-                `object` = null,
-                userInfo = mapOf<Any?, Any?>(
+                REQUEST_NOTIFICATION,
+                null,
+                mapOf<Any?, Any?>(
                     "requestId" to requestId,
                     "action" to "presentPaymentSheet",
                     "clientSecret" to clientSecret,
@@ -140,7 +140,7 @@ private class StripePaymentSheetBridge {
 }
 
 private fun NSDictionary.stringValue(key: String): String? {
-    val value = this[key] ?: return null
+    val value = objectForKey(key) ?: return null
     return when (value) {
         is String -> value
         is NSString -> value.toString()
@@ -149,7 +149,7 @@ private fun NSDictionary.stringValue(key: String): String? {
 }
 
 private fun NSDictionary.longValue(key: String): Long? {
-    val raw = this[key] ?: return null
+    val raw = objectForKey(key) ?: return null
     return when (raw) {
         is Long -> raw
         is Int -> raw.toLong()
@@ -161,7 +161,7 @@ private fun NSDictionary.longValue(key: String): Long? {
 }
 
 private fun NSDictionary.boolValue(key: String): Boolean? {
-    val raw = this[key] ?: return null
+    val raw = objectForKey(key) ?: return null
     return when (raw) {
         is Boolean -> raw
         is Number -> raw.toInt() != 0

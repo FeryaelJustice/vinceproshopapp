@@ -3,6 +3,7 @@ package com.billiardsdraw.vinceproshop.data.security
 import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.alloc
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.reinterpret
@@ -10,8 +11,6 @@ import kotlinx.cinterop.usePinned
 import platform.CoreFoundation.CFDictionaryRef
 import platform.CoreFoundation.CFTypeRefVar
 import platform.Foundation.NSData
-import platform.Foundation.NSString
-import platform.Foundation.NSUTF8StringEncoding
 import platform.Foundation.create
 import platform.Security.SecItemAdd
 import platform.Security.SecItemCopyMatching
@@ -34,6 +33,7 @@ import platform.posix.memcpy
 private const val KEYCHAIN_SERVICE = "com.billiardsdraw.vinceproshop.login"
 private const val KEYCHAIN_ACCOUNT = "saved_login_credential_v1"
 
+@OptIn(ExperimentalForeignApi::class)
 private class IosLoginCredentialStore : LoginCredentialStore {
 
     override suspend fun readCredential(): LoginCredential? = memScoped {
@@ -101,9 +101,10 @@ private class IosLoginCredentialStore : LoginCredentialStore {
 actual fun provideLoginCredentialStore(): LoginCredentialStore = IosLoginCredentialStore()
 
 private fun String.toNSData(): NSData {
-    val nsString = NSString.create(string = this)
-    return nsString.dataUsingEncoding(NSUTF8StringEncoding)
-        ?: NSData.create()
+    val bytes = encodeToByteArray()
+    return bytes.usePinned { pinned ->
+        NSData.create(bytes = pinned.addressOf(0), length = bytes.size.convert())
+    }
 }
 
 @OptIn(ExperimentalForeignApi::class)

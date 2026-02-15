@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.alloc
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.reinterpret
@@ -20,14 +21,13 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import okio.Path.Companion.toPath
-import platform.CommonCrypto.CCCrypt
-import platform.CommonCrypto.kCCAlgorithmAES128
-import platform.CommonCrypto.kCCBlockSizeAES128
-import platform.CommonCrypto.kCCDecrypt
-import platform.CommonCrypto.kCCEncrypt
-import platform.CommonCrypto.kCCOptionPKCS7Padding
-import platform.CommonCrypto.kCCSuccess
 import platform.CoreCrypto.CCCrypt
+import platform.CoreCrypto.kCCAlgorithmAES128
+import platform.CoreCrypto.kCCBlockSizeAES128
+import platform.CoreCrypto.kCCDecrypt
+import platform.CoreCrypto.kCCEncrypt
+import platform.CoreCrypto.kCCOptionPKCS7Padding
+import platform.CoreCrypto.kCCSuccess
 import platform.CoreFoundation.CFDictionaryRef
 import platform.CoreFoundation.CFTypeRefVar
 import platform.Foundation.NSData
@@ -61,6 +61,7 @@ private const val KEY_SIZE_BYTES = 32
 private const val IV_SIZE_BYTES = 16
 private val TOKEN_PREF_KEY = stringPreferencesKey("encrypted_jwt")
 
+@OptIn(ExperimentalForeignApi::class)
 class IosEncryptedDataStoreTokenStore : AuthTokenStore {
 
     private val dataStore: DataStore<Preferences> = PreferenceDataStoreFactory.createWithPath(

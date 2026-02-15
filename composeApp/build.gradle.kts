@@ -17,11 +17,16 @@ val localProperties = Properties().apply {
 }
 
 fun secretProperty(key: String, defaultValue: String = ""): String = (
-            providers.gradleProperty(key).orNull
-                ?: System.getenv(key)
-                ?: localProperties.getProperty(key)
-                ?: defaultValue
-            ).trim()
+    providers.gradleProperty(key).orNull
+        ?: System.getenv(key)
+        ?: localProperties.getProperty(key)
+        ?: defaultValue
+    )
+    .replace("\r", "")
+    .replace("\n", "")
+    .trim()
+    .removeSurrounding("\"")
+    .removeSurrounding("'")
 
 fun kotlinEscaped(value: String): String {
     return value
@@ -75,14 +80,14 @@ val generateLocalSecrets by tasks.registering {
             
             object LocalSecrets {
                 const val API_BASE_URL: String = "${kotlinEscaped(apiBaseUrl)}"
-                const val STRIPE_PUBLISHABLE_KEY: String = "${kotlinEscaped(stripeKey)}
-                const val STRIPE_MERCHANT_DISPLAY_NAME: String = "${kotlinEscaped(merchantName)}
+                const val STRIPE_PUBLISHABLE_KEY: String = "${kotlinEscaped(stripeKey)}"
+                const val STRIPE_MERCHANT_DISPLAY_NAME: String = "${kotlinEscaped(merchantName)}"
                 const val HTTP_LOGS_ENABLED: Boolean = $httpLogs
             }
             
             fun localApiBaseUrl(): String = LocalSecrets.API_BASE_URL
             fun localStripePublishableKey(): String = LocalSecrets.STRIPE_PUBLISHABLE_KEY
-            fun localStripeMerchantDisplayName(): String = LocalSecrets.STRIPE_MERCHANT_DISPLAY
+            fun localStripeMerchantDisplayName(): String = LocalSecrets.STRIPE_MERCHANT_DISPLAY_NAME
             fun localHttpLogsEnabled(): Boolean = LocalSecrets.HTTP_LOGS_ENABLED
             """.trimIndent()
         )
@@ -143,6 +148,7 @@ kotlin {
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
+            implementation(compose.materialIconsExtended)
             implementation(libs.compose.ui)
             implementation(libs.compose.components.resources)
             implementation(libs.compose.uiToolingPreview)
