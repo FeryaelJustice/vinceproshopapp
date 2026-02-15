@@ -104,6 +104,32 @@ afterEvaluate {
     }
 }
 
+
+fun writeLocalSecretsFile() {
+    val packageDir = generatedSecretsDir.get().asFile.resolve("com/billiardsdraw/vinceproshop/core")
+    packageDir.mkdirs()
+    packageDir.resolve("LocalSecrets.kt").writeText(
+        """
+        package com.billiardsdraw.vinceproshop.core
+        
+        object LocalSecrets {
+            const val API_BASE_URL: String = "${kotlinEscaped(apiBaseUrl)}"
+            const val STRIPE_PUBLISHABLE_KEY: String = "${kotlinEscaped(stripeKey)}"
+            const val STRIPE_MERCHANT_DISPLAY_NAME: String = "${kotlinEscaped(merchantName)}"
+            const val HTTP_LOGS_ENABLED: Boolean = $httpLogs
+        }
+        
+        fun localApiBaseUrl(): String = LocalSecrets.API_BASE_URL
+        fun localStripePublishableKey(): String = LocalSecrets.STRIPE_PUBLISHABLE_KEY
+        fun localStripeMerchantDisplayName(): String = LocalSecrets.STRIPE_MERCHANT_DISPLAY_NAME
+        fun localHttpLogsEnabled(): Boolean = LocalSecrets.HTTP_LOGS_ENABLED
+        """.trimIndent()
+    )
+}
+
+// Keep generated sources available for IDE sync and command-line builds.
+writeLocalSecretsFile()
+
 kotlin {
     androidLibrary {
         namespace = "com.billiardsdraw.vinceproshop"
