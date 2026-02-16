@@ -24,6 +24,7 @@ import kotlin.coroutines.resume
 private const val REQUEST_NOTIFICATION = "StripePaymentBridgeRequest"
 private const val RESPONSE_NOTIFICATION = "StripePaymentBridgeResponse"
 
+@Suppress("ModifierDefaultValue")
 @Composable
 actual fun StripePaymentButton(
     clientSecret: String,
@@ -133,7 +134,7 @@ private class StripePaymentSheetBridge {
             )
 
             continuation.invokeOnCancellation {
-                observer?.let { NSNotificationCenter.defaultCenter.removeObserver(it) }
+                observer.let { NSNotificationCenter.defaultCenter.removeObserver(it) }
             }
         }
     }
@@ -145,7 +146,7 @@ private fun NSDictionary.stringValue(key: String): String? {
         is String -> value
         is NSString -> value.toString()
         else -> value.toString()
-    }?.takeIf { it.isNotBlank() }
+    }.takeIf { it.isNotBlank() }
 }
 
 private fun NSDictionary.longValue(key: String): Long? {

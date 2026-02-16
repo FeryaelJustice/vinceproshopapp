@@ -8,25 +8,31 @@ import com.billiardsdraw.vinceproshop.data.local.createRoomDatabase
 import com.billiardsdraw.vinceproshop.data.remote.AccountApi
 import com.billiardsdraw.vinceproshop.data.remote.AdminApi
 import com.billiardsdraw.vinceproshop.data.remote.CatalogApi
+import com.billiardsdraw.vinceproshop.data.remote.ChatbotApi
 import com.billiardsdraw.vinceproshop.data.remote.CheckoutApi
 import com.billiardsdraw.vinceproshop.data.remote.KtorAccountApi
 import com.billiardsdraw.vinceproshop.data.remote.KtorAdminApi
 import com.billiardsdraw.vinceproshop.data.remote.KtorCatalogApi
+import com.billiardsdraw.vinceproshop.data.remote.KtorChatbotApi
 import com.billiardsdraw.vinceproshop.data.remote.KtorCheckoutApi
 import com.billiardsdraw.vinceproshop.data.remote.createPlatformHttpClient
 import com.billiardsdraw.vinceproshop.data.remote.defaultApiBaseUrl
 import com.billiardsdraw.vinceproshop.data.repository.AccountRepositoryImpl
 import com.billiardsdraw.vinceproshop.data.repository.CartRepositoryImpl
 import com.billiardsdraw.vinceproshop.data.repository.CatalogRepositoryImpl
+import com.billiardsdraw.vinceproshop.data.repository.ChatbotRepositoryImpl
 import com.billiardsdraw.vinceproshop.data.repository.CheckoutRepositoryImpl
 import com.billiardsdraw.vinceproshop.data.security.LoginCredentialStore
 import com.billiardsdraw.vinceproshop.data.security.provideLoginCredentialStore
 import com.billiardsdraw.vinceproshop.domain.repository.AccountRepository
 import com.billiardsdraw.vinceproshop.domain.repository.CartRepository
 import com.billiardsdraw.vinceproshop.domain.repository.CatalogRepository
+import com.billiardsdraw.vinceproshop.domain.repository.ChatbotRepository
 import com.billiardsdraw.vinceproshop.domain.repository.CheckoutRepository
 import com.billiardsdraw.vinceproshop.domain.usecase.AddCartItemUseCase
+import com.billiardsdraw.vinceproshop.domain.usecase.CloseChatbotSessionUseCase
 import com.billiardsdraw.vinceproshop.domain.usecase.ClearCartUseCase
+import com.billiardsdraw.vinceproshop.domain.usecase.CreateChatbotSessionUseCase
 import com.billiardsdraw.vinceproshop.domain.usecase.CreatePaymentIntentUseCase
 import com.billiardsdraw.vinceproshop.domain.usecase.GetAdminOrdersUseCase
 import com.billiardsdraw.vinceproshop.domain.usecase.GetUserOrdersUseCase
@@ -41,6 +47,7 @@ import com.billiardsdraw.vinceproshop.domain.usecase.RefreshProductUseCase
 import com.billiardsdraw.vinceproshop.domain.usecase.RefreshSessionUseCase
 import com.billiardsdraw.vinceproshop.domain.usecase.RemoveCartItemUseCase
 import com.billiardsdraw.vinceproshop.domain.usecase.SearchProductsUseCase
+import com.billiardsdraw.vinceproshop.domain.usecase.SendChatbotMessageUseCase
 import com.billiardsdraw.vinceproshop.domain.usecase.UpdateCartQuantityUseCase
 import com.billiardsdraw.vinceproshop.presentation.account.AccountViewModel
 import com.billiardsdraw.vinceproshop.presentation.admin.AdminPanelViewModel
@@ -54,6 +61,7 @@ import com.billiardsdraw.vinceproshop.presentation.admin.orders.AdminOrdersViewM
 import com.billiardsdraw.vinceproshop.presentation.admin.outofstock.AdminOutOfStockInterestedViewModel
 import com.billiardsdraw.vinceproshop.presentation.cart.CartViewModel
 import com.billiardsdraw.vinceproshop.presentation.catalog.CatalogViewModel
+import com.billiardsdraw.vinceproshop.presentation.chatbot.ChatbotViewModel
 import com.billiardsdraw.vinceproshop.presentation.home.HomeViewModel
 import com.billiardsdraw.vinceproshop.presentation.product.ProductDetailViewModel
 import com.billiardsdraw.vinceproshop.presentation.search.SearchViewModel
@@ -91,6 +99,7 @@ val appModule =
         single<AccountApi> { KtorAccountApi(get(), get(), get(), get()) }
         single<AdminApi> { KtorAdminApi(get(), get(), get(), get()) }
         single<CheckoutApi> { KtorCheckoutApi(get(), get(), get()) }
+        single<ChatbotApi> { KtorChatbotApi(get(), get(), get()) }
 
         single<CatalogRepository> {
             CatalogRepositoryImpl(
@@ -106,6 +115,7 @@ val appModule =
         single<CartRepository> { CartRepositoryImpl(get(), get()) }
         single<AccountRepository> { AccountRepositoryImpl(get(), get()) }
         single<CheckoutRepository> { CheckoutRepositoryImpl(get(), get()) }
+        single<ChatbotRepository> { ChatbotRepositoryImpl(get(), get()) }
 
         factory { RefreshCatalogUseCase(get()) }
         factory { ObserveHomeFeedUseCase(get()) }
@@ -124,6 +134,9 @@ val appModule =
         factory { GetUserOrdersUseCase(get()) }
         factory { GetAdminOrdersUseCase(get()) }
         factory { CreatePaymentIntentUseCase(get()) }
+        factory { CreateChatbotSessionUseCase(get()) }
+        factory { SendChatbotMessageUseCase(get()) }
+        factory { CloseChatbotSessionUseCase(get()) }
 
         viewModel { HomeViewModel(get(), get(), get()) }
         viewModel { CatalogViewModel(get(), get(), get()) }
@@ -140,4 +153,5 @@ val appModule =
         viewModel { AdminManageCrossSellViewModel(get(), get(), get()) }
         viewModel { AdminManageSizesViewModel(get(), get()) }
         viewModel { AdminManageFeaturedViewModel(get(), get(), get()) }
+        viewModel { ChatbotViewModel(get(), get(), get(), get()) }
     }
