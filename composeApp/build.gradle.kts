@@ -203,6 +203,9 @@ kotlin {
             implementation(libs.androidx.datastore)
             // The Preferences DataStore library
             implementation(libs.androidx.datastore.preferences)
+
+            // Logger KMP (3rd party)
+            implementation(libs.logger)
         }
 
         androidMain.dependencies {

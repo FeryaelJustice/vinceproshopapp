@@ -45,6 +45,10 @@ import com.billiardsdraw.vinceproshop.presentation.product.ProductDetailViewMode
 import com.billiardsdraw.vinceproshop.presentation.search.SearchScreen
 import com.billiardsdraw.vinceproshop.presentation.search.SearchViewModel
 import com.billiardsdraw.vinceproshop.presentation.theme.VinceTheme
+import dev.shivathapaa.logger.api.LogLevel
+import dev.shivathapaa.logger.api.LoggerFactory
+import dev.shivathapaa.logger.core.LoggerConfig
+import dev.shivathapaa.logger.sink.DefaultLogSink
 import org.koin.compose.KoinApplication
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -58,6 +62,14 @@ fun App() {
             modules(appModule)
         }
     ) {
+
+        val config = LoggerConfig.Builder()
+            .minLevel(LogLevel.DEBUG)
+            .addSink(DefaultLogSink())
+            .build()
+
+        LoggerFactory.install(config)
+
         VinceTheme {
             val navigator = remember { AppNavigator() }
             val languageCode by rememberCurrentLanguageCodeState()
@@ -226,6 +238,7 @@ fun App() {
                                 languageCode = languageCode,
                                 currentPath = navigator.current.toChatbotPath(),
                                 contentPadding = padding,
+                                onOpenProduct = { slug -> navigator.openProduct(slug) },
                                 modifier = Modifier.fillMaxSize(),
                             )
                         }

@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.billiardsdraw.vinceproshop.domain.model.ChatbotSenderRole
 import com.billiardsdraw.vinceproshop.presentation.admin.detectImageMimeType
+import dev.shivathapaa.logger.api.LoggerFactory
 import io.github.ismoy.imagepickerkmp.domain.extensions.loadBytes
 import io.github.ismoy.imagepickerkmp.domain.models.GalleryPhotoResult
 import io.github.ismoy.imagepickerkmp.domain.models.MimeType
@@ -66,9 +67,12 @@ fun ChatbotFloatingWidget(
     languageCode: String,
     currentPath: String,
     contentPadding: PaddingValues,
+    onOpenProduct: (String) -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: ChatbotViewModel = koinViewModel(),
 ) {
+    val logger = LoggerFactory.get("MyApp")
+
     val state by viewModel.state.collectAsStateWithLifecycle()
     val session = state.session
     val isSpanish = languageCode.startsWith("es", ignoreCase = true)
@@ -188,173 +192,154 @@ fun ChatbotFloatingWidget(
                             .fillMaxWidth()
                             .verticalScroll(widgetScrollState),
                 ) {
-                Row(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 14.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
                     Row(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 14.dp, vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        BotBadge()
-                        Column {
-                            Text(
-                                text = session?.botName?.ifBlank { null }
-                                    ?: if (isSpanish) "Vince Pro Shop IA Bot" else "Vince Pro Shop AI Bot",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                            Text(
-                                text = if (isSpanish) "Asistente inteligente de tienda" else "Smart store assistant",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                    IconButton(onClick = viewModel::close) {
-                        ChatbotCloseIcon(
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-
-                LazyColumn(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 180.dp, max = 360.dp)
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
-                            .padding(horizontal = 10.dp, vertical = 10.dp),
-                    state = listState,
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    state.errorMessage?.let { message ->
-                        item(key = "chat_error", contentType = "contentType1") {
-                            Surface(
-                                color = MaterialTheme.colorScheme.error.copy(alpha = 0.17f),
-                                shape = RoundedCornerShape(10.dp),
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .border(
-                                            1.dp,
-                                            MaterialTheme.colorScheme.error.copy(alpha = 0.45f),
-                                            RoundedCornerShape(10.dp)
-                                        ),
-                            ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            BotBadge()
+                            Column {
                                 Text(
-                                    text = message,
-                                    modifier = Modifier.padding(
-                                        horizontal = 10.dp,
-                                        vertical = 8.dp
-                                    ),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.error,
+                                    text = session?.botName?.ifBlank { null }
+                                        ?: if (isSpanish) "Vince Pro Shop IA Bot" else "Vince Pro Shop AI Bot",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                                Text(
+                                    text = if (isSpanish) "Asistente inteligente de tienda" else "Smart store assistant",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                         }
-                    }
-
-                    if (state.isBootstrapping && state.messages.isEmpty()) {
-                        item(key = "chat_bootstrap", contentType = "contentType2") {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(20.dp),
-                                    strokeWidth = 2.dp
-                                )
-                            }
+                        IconButton(onClick = viewModel::close) {
+                            ChatbotCloseIcon(
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                     }
 
-                    items(
-                        items = state.messages,
-                        key = { it.localId },
-                        contentType = { _ -> "contentType3" }) { message ->
-                        ChatMessageBubble(
-                            message = message,
-                            onOpenReference = { href -> runCatching { uriHandler.openUri(href) } },
-                        )
-                    }
-
-                    if (state.isBotTyping) {
-                        item(key = "chat_typing", contentType = "contentType4") {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.Top,
-                            ) {
-                                BotBadge(size = 24.dp)
+                    LazyColumn(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 180.dp, max = 360.dp)
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
+                                .padding(horizontal = 10.dp, vertical = 10.dp),
+                        state = listState,
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        state.errorMessage?.let { message ->
+                            item(key = "chat_error", contentType = "contentType1") {
                                 Surface(
-                                    color = MaterialTheme.colorScheme.surface,
-                                    shape = RoundedCornerShape(12.dp),
-                                    tonalElevation = 1.dp,
+                                    color = MaterialTheme.colorScheme.error.copy(alpha = 0.17f),
+                                    shape = RoundedCornerShape(10.dp),
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .border(
+                                                1.dp,
+                                                MaterialTheme.colorScheme.error.copy(alpha = 0.45f),
+                                                RoundedCornerShape(10.dp)
+                                            ),
                                 ) {
                                     Text(
-                                        text = "...",
+                                        text = message,
                                         modifier = Modifier.padding(
-                                            horizontal = 12.dp,
+                                            horizontal = 10.dp,
                                             vertical = 8.dp
                                         ),
-                                        style = MaterialTheme.typography.bodyMedium,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.error,
                                     )
                                 }
                             }
                         }
-                    }
-                }
 
-                Column(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 10.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    if (!hasUserMessages && !session?.starterTopics.isNullOrEmpty()) {
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            session.starterTopics.forEach { topic ->
-                                OutlinedButton(
-                                    onClick = { viewModel.sendMessage(topic.label) },
-                                    enabled = !state.isSending && !state.isBootstrapping,
-                                    contentPadding = PaddingValues(
-                                        horizontal = 10.dp,
-                                        vertical = 0.dp
-                                    ),
+                        if (state.isBootstrapping && state.messages.isEmpty()) {
+                            item(key = "chat_bootstrap", contentType = "contentType2") {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically,
                                 ) {
-                                    Text(
-                                        topic.label,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        style = MaterialTheme.typography.labelSmall,
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(20.dp),
+                                        strokeWidth = 2.dp
                                     )
+                                }
+                            }
+                        }
+
+                        items(
+                            items = state.messages,
+                            key = { it.localId },
+                            contentType = { _ -> "contentType3" }) { message ->
+                            ChatMessageBubble(
+                                message = message,
+                                onOpenReference = { href ->
+                                    logger.info { "Reference clicked: $href" }
+                                    val slug = extractProductSlugFromHref(href)
+                                    logger.info { "Reference clicked extract: $href" }
+                                    if (!slug.isNullOrBlank()) {
+                                        onOpenProduct(slug)
+                                        viewModel.hide()
+                                    } else {
+                                        runCatching { uriHandler.openUri(href) }
+                                    }
+                                },
+                            )
+                        }
+
+                        if (state.isBotTyping) {
+                            item(key = "chat_typing", contentType = "contentType4") {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.Top,
+                                ) {
+                                    BotBadge(size = 24.dp)
+                                    Surface(
+                                        color = MaterialTheme.colorScheme.surface,
+                                        shape = RoundedCornerShape(12.dp),
+                                        tonalElevation = 1.dp,
+                                    ) {
+                                        Text(
+                                            text = "...",
+                                            modifier = Modifier.padding(
+                                                horizontal = 12.dp,
+                                                vertical = 8.dp
+                                            ),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
 
-                    if (hasUserMessages && !latestBotMessage?.metadata?.quickReplies.isNullOrEmpty()) {
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            latestBotMessage
-                                .metadata
-                                .quickReplies
-                                .take(3)
-                                .forEach { quickReply ->
+                    Column(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        if (!hasUserMessages && !session?.starterTopics.isNullOrEmpty()) {
+                            FlowRow(
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                session.starterTopics.forEach { topic ->
                                     OutlinedButton(
-                                        onClick = { viewModel.sendMessage(quickReply) },
+                                        onClick = { viewModel.sendMessage(topic.label) },
                                         enabled = !state.isSending && !state.isBootstrapping,
                                         contentPadding = PaddingValues(
                                             horizontal = 10.dp,
@@ -362,112 +347,144 @@ fun ChatbotFloatingWidget(
                                         ),
                                     ) {
                                         Text(
-                                            quickReply,
+                                            topic.label,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
                                             style = MaterialTheme.typography.labelSmall,
-                                            maxLines = 1
                                         )
                                     }
                                 }
-                        }
-                    }
-
-                    OutlinedTextField(
-                        value = state.inputText,
-                        onValueChange = viewModel::onInputChanged,
-                        placeholder = {
-                            Text(if (isSpanish) "Escribe tu mensaje..." else "Write your message...")
-                        },
-                        enabled = !state.isSending && !state.isBootstrapping,
-                        minLines = 2,
-                        maxLines = 4,
-                        modifier = Modifier.fillMaxWidth(),
-                        isError = charLimitReached,
-                    )
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            OutlinedButton(
-                                onClick = {
-                                    if (canUploadAttachment) {
-                                        openAttachmentPicker = true
-                                    }
-                                },
-                                enabled = canUploadAttachment && !state.isSending && !state.isBootstrapping,
-                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
-                            ) {
-                                Text(if (isSpanish) "Adjuntar archivo" else "Attach file")
                             }
+                        }
 
-                            state.selectedAttachment?.let { attachment ->
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        if (hasUserMessages && !latestBotMessage?.metadata?.quickReplies.isNullOrEmpty()) {
+                            FlowRow(
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                latestBotMessage
+                                    .metadata
+                                    .quickReplies
+                                    .take(3)
+                                    .forEach { quickReply ->
+                                        OutlinedButton(
+                                            onClick = { viewModel.sendMessage(quickReply) },
+                                            enabled = !state.isSending && !state.isBootstrapping,
+                                            contentPadding = PaddingValues(
+                                                horizontal = 10.dp,
+                                                vertical = 0.dp
+                                            ),
+                                        ) {
+                                            Text(
+                                                quickReply,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                maxLines = 1
+                                            )
+                                        }
+                                    }
+                            }
+                        }
+
+                        OutlinedTextField(
+                            value = state.inputText,
+                            onValueChange = viewModel::onInputChanged,
+                            placeholder = {
+                                Text(if (isSpanish) "Escribe tu mensaje..." else "Write your message...")
+                            },
+                            enabled = !state.isSending && !state.isBootstrapping,
+                            minLines = 2,
+                            maxLines = 4,
+                            modifier = Modifier.fillMaxWidth(),
+                            isError = charLimitReached,
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                OutlinedButton(
+                                    onClick = {
+                                        if (canUploadAttachment) {
+                                            openAttachmentPicker = true
+                                        }
+                                    },
+                                    enabled = canUploadAttachment && !state.isSending && !state.isBootstrapping,
+                                    contentPadding = PaddingValues(
+                                        horizontal = 10.dp,
+                                        vertical = 0.dp
+                                    ),
                                 ) {
-                                    Text(
-                                        text = attachment.fileName,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        modifier = Modifier.widthIn(max = 170.dp),
-                                    )
-                                    TextButton(
-                                        onClick = viewModel::clearAttachment,
-                                        contentPadding = PaddingValues(0.dp)
+                                    Text(if (isSpanish) "Adjuntar archivo" else "Attach file")
+                                }
+
+                                state.selectedAttachment?.let { attachment ->
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp),
                                     ) {
                                         Text(
-                                            text = if (isSpanish) "Quitar" else "Remove",
+                                            text = attachment.fileName,
                                             style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.primary,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier.widthIn(max = 170.dp),
                                         )
+                                        TextButton(
+                                            onClick = viewModel::clearAttachment,
+                                            contentPadding = PaddingValues(0.dp)
+                                        ) {
+                                            Text(
+                                                text = if (isSpanish) "Quitar" else "Remove",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.primary,
+                                            )
+                                        }
                                     }
                                 }
                             }
+
+                            Button(
+                                onClick = { viewModel.sendMessage() },
+                                enabled =
+                                    !state.isSending &&
+                                            !state.isBootstrapping &&
+                                            !charLimitReached &&
+                                            state.inputText.trim().isNotEmpty(),
+                            ) {
+                                Text(
+                                    if (state.isSending) {
+                                        if (isSpanish) "Enviando..." else "Sending..."
+                                    } else {
+                                        if (isSpanish) "Enviar" else "Send"
+                                    },
+                                )
+                            }
                         }
 
-                        Button(
-                            onClick = { viewModel.sendMessage() },
-                            enabled =
-                                !state.isSending &&
-                                        !state.isBootstrapping &&
-                                        !charLimitReached &&
-                                        state.inputText.trim().isNotEmpty(),
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                if (state.isSending) {
-                                    if (isSpanish) "Enviando..." else "Sending..."
-                                } else {
-                                    if (isSpanish) "Enviar" else "Send"
-                                },
+                                text =
+                                    if (isSpanish) {
+                                        "Adjuntos usados: ${state.attachmentCount}/$maxAttachments"
+                                    } else {
+                                        "Attachments used: ${state.attachmentCount}/$maxAttachments"
+                                    },
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Text(
+                                text = "$charCount/$maxMessageChars",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (charLimitReached) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text =
-                                if (isSpanish) {
-                                    "Adjuntos usados: ${state.attachmentCount}/$maxAttachments"
-                                } else {
-                                    "Attachments used: ${state.attachmentCount}/$maxAttachments"
-                                },
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            text = "$charCount/$maxMessageChars",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (charLimitReached) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
                 }
             }
         }
@@ -623,3 +640,13 @@ private fun fileExtensionForAttachmentMimeType(mimeType: String): String =
         "image/avif" -> "avif"
         else -> "jpg"
     }
+
+private fun extractProductSlugFromHref(href: String): String? {
+    val trimmed = href.trim()
+    if (trimmed.isBlank()) return null
+    val match = Regex("""(?:https?://[^/]+)?/product/([^/?#]+)""").find(trimmed) ?: return null
+    return match.groupValues
+        .getOrNull(1)
+        ?.trim()
+        ?.takeIf { it.isNotBlank() }
+}
