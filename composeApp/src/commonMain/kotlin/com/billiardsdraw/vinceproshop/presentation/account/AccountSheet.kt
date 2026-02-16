@@ -55,21 +55,21 @@ import vinceproshop_app.composeapp.generated.resources.visibility
 import vinceproshop_app.composeapp.generated.resources.visibility_off
 
 private enum class AccountItemType {
-    Header, // Row con título "Account" + botón Refresh
+    Header, // Row con titulo "Account" + boton Refresh
     LanguageLabel, // Text "Language"
-    LanguageChips, // Row con los 4 FilterChip
-    Loading, // CircularProgressIndicator (sesión Y pedidos, mismo composable)
+    LanguageChips, // Row con los 3 FilterChip
+    Loading, // CircularProgressIndicator (sesion y pedidos, mismo composable)
     LoginHint, // Text explicativo de login
     IdentifierField, // OutlinedTextField email/usuario
-    PasswordField, // OutlinedTextField contraseña
+    PasswordField, // OutlinedTextField contrasena
     ForgetCredential, // TextButton "Forget saved login"
     LoginButton, // Button "Log in"
-    AuthError, // Text error de autenticación
+    AuthError, // Text error de autenticacion
     UserCard, // Surface con username/email/role
     LogoutButton, // Row con TextButton "Logout"
     OrdersError, // Text error cargando pedidos
-    SectionTitle, // Text de título de sección (Admin Sections, Recent Orders, My Orders)
-    AdminSection, // Row clickable de cada sección admin
+    SectionTitle, // Text de titulo de seccion (Admin Sections, Recent Orders, My Orders)
+    AdminSection, // Row clickable de cada seccion admin
     Order, // OrderCard (admin y user comparten el mismo composable)
     EmptyOrders, // Text "No orders yet" / "No hay pedidos"
 }
@@ -125,7 +125,7 @@ fun AccountSheet(
         }
         item(contentType = AccountItemType.LanguageLabel) {
             Text(
-                text = tr("Language", "Idioma", "اللغة"),
+                text = tr("Language", "Idioma"),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -137,7 +137,7 @@ fun AccountSheet(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 LanguageChip(
-                    label = tr("System", "Sistema", "النظام"),
+                    label = tr("System", "Sistema"),
                     selected = languageOption.equals("system", ignoreCase = true),
                     onClick = { onLanguageOptionChange("system") },
                 )
@@ -150,11 +150,6 @@ fun AccountSheet(
                     label = "ES",
                     selected = languageOption.equals("es", ignoreCase = true),
                     onClick = { onLanguageOptionChange("es") },
-                )
-                LanguageChip(
-                    label = "AR",
-                    selected = languageOption.equals("ar", ignoreCase = true),
-                    onClick = { onLanguageOptionChange("ar") },
                 )
             }
         }
@@ -225,7 +220,7 @@ fun AccountSheet(
                             if (state.authError != null) onDismissAuthError()
                         },
                         singleLine = true,
-                        label = { Text(tr("Password", "Contraseña")) },
+                        label = { Text(tr("Password", "Contrase\u00f1a")) },
                         keyboardOptions =
                             KeyboardOptions(
                                 capitalization = KeyboardCapitalization.Unspecified,
@@ -255,9 +250,9 @@ fun AccountSheet(
                                         ),
                                     contentDescription =
                                         if (isPasswordVisible) {
-                                            tr("Hide password", "Ocultar contraseña")
+                                            tr("Hide password", "Ocultar contrase\u00f1a")
                                         } else {
-                                            tr("Show password", "Mostrar contraseña")
+                                            tr("Show password", "Mostrar contrase\u00f1a")
                                         },
                                 )
                             }
@@ -266,7 +261,7 @@ fun AccountSheet(
                             Modifier
                                 .fillMaxWidth()
                                 .semantics {
-                                    contentDescription = tr("Password input", "Campo de contraseña")
+                                    contentDescription = tr("Password input", "Campo de contrase\u00f1a")
                                     password()
                                 },
                     )

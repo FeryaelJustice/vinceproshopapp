@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.billiardsdraw.vinceproshop.presentation.legal.LegalDocument
 
 enum class RootSection {
     Home,
@@ -19,6 +20,11 @@ sealed interface AppDestination {
 
     data class ProductDetail(
         val slug: String,
+        val source: RootSection,
+    ) : AppDestination
+
+    data class LegalDocumentPage(
+        val document: LegalDocument,
         val source: RootSection,
     ) : AppDestination
 
@@ -45,9 +51,22 @@ class AppNavigator {
             when (val destination = current) {
                 is AppDestination.Root -> destination.section
                 is AppDestination.ProductDetail -> destination.source
+                is AppDestination.LegalDocumentPage -> destination.source
                 is AppDestination.AdminRoute -> destination.source
             }
         backstack += AppDestination.ProductDetail(slug, source)
+        current = backstack.last()
+    }
+
+    fun openLegalDocument(document: LegalDocument) {
+        val source =
+            when (val destination = current) {
+                is AppDestination.Root -> destination.section
+                is AppDestination.ProductDetail -> destination.source
+                is AppDestination.LegalDocumentPage -> destination.source
+                is AppDestination.AdminRoute -> destination.source
+            }
+        backstack += AppDestination.LegalDocumentPage(document = document, source = source)
         current = backstack.last()
     }
 
@@ -56,6 +75,7 @@ class AppNavigator {
             when (val destination = current) {
                 is AppDestination.Root -> destination.section
                 is AppDestination.ProductDetail -> destination.source
+                is AppDestination.LegalDocumentPage -> destination.source
                 is AppDestination.AdminRoute -> destination.source
             }
         backstack += AppDestination.AdminRoute(route = route, source = source)
@@ -83,6 +103,7 @@ class AppNavigator {
         when (val destination = current) {
             is AppDestination.Root -> destination.section
             is AppDestination.ProductDetail -> destination.source
+            is AppDestination.LegalDocumentPage -> destination.source
             is AppDestination.AdminRoute -> destination.source
         }
 }

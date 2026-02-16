@@ -14,7 +14,8 @@ expect fun readStoredLanguageOption(): String?
 expect fun writeStoredLanguageOption(option: String?)
 
 object LocalizationManager {
-    private val _languageOption = MutableStateFlow(readStoredLanguageOption().orEmpty().ifBlank { "system" })
+    private val _languageOption =
+        MutableStateFlow(normalizeLanguageOption(readStoredLanguageOption().orEmpty().ifBlank { "system" }))
     private val _resolvedLanguageCode = MutableStateFlow(resolveLanguageCode(_languageOption.value))
 
     val languageOption: StateFlow<String> = _languageOption.asStateFlow()
@@ -28,13 +29,27 @@ object LocalizationManager {
     }
 
     private fun resolveLanguageCode(option: String): String =
-        if (option.equals("system", ignoreCase = true)) {
-            platformLanguageCode().ifBlank { "en" }
-        } else {
-            option.lowercase()
+        when (normalizeLanguageOption(option)) {
+            "system" -> normalizePlatformLanguageCode(platformLanguageCode())
+            "es" -> "es"
+            else -> "en"
         }
 
-    private fun normalizeLanguageOption(option: String): String = option.trim().lowercase().ifBlank { "system" }
+    private fun normalizePlatformLanguageCode(rawCode: String): String {
+        val normalized = rawCode.trim().lowercase()
+        return when {
+            normalized.startsWith("es") -> "es"
+            normalized.startsWith("en") -> "en"
+            else -> "en"
+        }
+    }
+
+    private fun normalizeLanguageOption(option: String): String =
+        when (option.trim().lowercase()) {
+            "en" -> "en"
+            "es" -> "es"
+            else -> "system"
+        }
 }
 
 @Composable

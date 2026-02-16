@@ -37,6 +37,7 @@ import com.billiardsdraw.vinceproshop.presentation.components.VinceBottomBar
 import com.billiardsdraw.vinceproshop.presentation.components.VinceTopBar
 import com.billiardsdraw.vinceproshop.presentation.home.HomeScreen
 import com.billiardsdraw.vinceproshop.presentation.home.HomeViewModel
+import com.billiardsdraw.vinceproshop.presentation.legal.LegalDocumentScreen
 import com.billiardsdraw.vinceproshop.presentation.navigation.AppDestination
 import com.billiardsdraw.vinceproshop.presentation.navigation.AppNavigator
 import com.billiardsdraw.vinceproshop.presentation.navigation.RootSection
@@ -157,6 +158,7 @@ fun App() {
                                             catalogViewModel.onCategorySelected(categoryId)
                                             navigator.openRoot(RootSection.Catalog)
                                         },
+                                        onOpenLegalDocument = navigator::openLegalDocument,
                                         onRetry = homeViewModel::retry,
                                         modifier = Modifier.padding(padding),
                                     )
@@ -222,6 +224,15 @@ fun App() {
                                 )
                             }
 
+                            is AppDestination.LegalDocumentPage -> {
+                                LegalDocumentScreen(
+                                    document = destination.document,
+                                    languageCode = languageCode,
+                                    onBack = navigator::back,
+                                    modifier = Modifier.padding(padding),
+                                )
+                            }
+
                             is AppDestination.AdminRoute -> {
                                 AdminPanelScreen(
                                     currentRoute = destination.route,
@@ -260,5 +271,6 @@ private fun AppDestination.toChatbotPath(): String =
             }
 
         is AppDestination.ProductDetail -> "/products/$slug"
+        is AppDestination.LegalDocumentPage -> "/legal/${document.name.lowercase()}"
         is AppDestination.AdminRoute -> route.ifBlank { "/admin" }
     }

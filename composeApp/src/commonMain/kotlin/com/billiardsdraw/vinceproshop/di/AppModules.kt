@@ -143,7 +143,7 @@ val appModule =
         viewModel { SearchViewModel(get(), get(), get()) }
         viewModel { CartViewModel(get(), get(), get(), get(), get(), get()) }
         viewModel { AccountViewModel(get(), get(), get(), get(), get(), get(), get()) }
-        viewModel { (slug: String) -> ProductDetailViewModel(slug, get(), get(), get(), get()) }
+        viewModel { (slug: String) -> ProductDetailViewModel(slug, get(), get(), get(), get(), get()) }
         viewModel { AdminPanelViewModel() }
         viewModel { AdminOrdersViewModel(get(), get()) }
         viewModel { AdminInventoryViewModel(get(), get()) }
