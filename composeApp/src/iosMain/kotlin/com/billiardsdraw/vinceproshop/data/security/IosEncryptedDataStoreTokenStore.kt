@@ -12,8 +12,10 @@ import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.ptr
 import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.usePinned
+import kotlinx.cinterop.value
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -28,7 +30,6 @@ import platform.CoreCrypto.kCCDecrypt
 import platform.CoreCrypto.kCCEncrypt
 import platform.CoreCrypto.kCCOptionPKCS7Padding
 import platform.CoreCrypto.kCCSuccess
-import platform.CoreFoundation.CFDictionaryRef
 import platform.CoreFoundation.CFTypeRefVar
 import platform.Foundation.NSData
 import platform.Foundation.NSFileManager
@@ -164,55 +165,55 @@ class IosEncryptedDataStoreTokenStore : AuthTokenStore {
     }
 
     private fun readKeyFromKeychain(): ByteArray? = memScoped {
-        val query = mapOf<Any?, Any?>(
+        withKeychainDictionary(
             kSecClass to kSecClassGenericPassword,
             kSecAttrService to KEYCHAIN_SERVICE,
             kSecAttrAccount to KEYCHAIN_ACCOUNT,
             kSecReturnData to true,
             kSecMatchLimit to kSecMatchLimitOne,
-        )
-
-        val out = alloc<CFTypeRefVar>()
-        val status = SecItemCopyMatching(query as CFDictionaryRef, out.ptr)
-        if (status == errSecSuccess) {
-            val data = out.value as NSData
-            return@memScoped data.toByteArray()
+        ) { query ->
+            val out = alloc<CFTypeRefVar>()
+            val status = SecItemCopyMatching(query, out.ptr)
+            if (status == errSecSuccess) {
+                val data = cfTypeRefToNSData(out.value)
+                    ?: error("Keychain returned unexpected data type")
+                return@memScoped data.toByteArray()
+            }
+            if (status == errSecItemNotFound) {
+                return@memScoped null
+            }
+            error("Keychain read failed ($status)")
         }
-        if (status == errSecItemNotFound.toInt()) {
-            return@memScoped null
-        }
-        error("Keychain read failed ($status)")
     }
 
     private fun saveKeyToKeychain(key: ByteArray) {
         val keyData = key.toNSData()
-        val addQuery = mapOf<Any?, Any?>(
+        val addStatus = withKeychainDictionary(
             kSecClass to kSecClassGenericPassword,
             kSecAttrService to KEYCHAIN_SERVICE,
             kSecAttrAccount to KEYCHAIN_ACCOUNT,
             kSecAttrAccessible to kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
             kSecValueData to keyData,
-        )
-
-        val addStatus = SecItemAdd(addQuery as CFDictionaryRef, null)
+        ) { addQuery ->
+            SecItemAdd(addQuery, null)
+        }
         if (addStatus == errSecSuccess) return
         if (addStatus != platform.Security.errSecDuplicateItem) {
             error("Keychain add failed ($addStatus)")
         }
 
-        val matchQuery = mapOf<Any?, Any?>(
+        val updateStatus = withKeychainDictionary(
             kSecClass to kSecClassGenericPassword,
             kSecAttrService to KEYCHAIN_SERVICE,
             kSecAttrAccount to KEYCHAIN_ACCOUNT,
-        )
-        val updateValues = mapOf<Any?, Any?>(
-            kSecValueData to keyData,
-            kSecAttrAccessible to kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
-        )
-        val updateStatus = SecItemUpdate(
-            matchQuery as CFDictionaryRef,
-            updateValues as CFDictionaryRef,
-        )
+        ) { matchQuery ->
+            withKeychainDictionary(
+                kSecValueData to keyData,
+                kSecAttrAccessible to kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
+            ) { updateValues ->
+                SecItemUpdate(matchQuery, updateValues)
+            }
+        }
         require(updateStatus == errSecSuccess) { "Keychain update failed ($updateStatus)" }
     }
 
