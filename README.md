@@ -21,13 +21,13 @@ Aplicacion Kotlin Multiplatform (Android + iOS) para Vince Pro Shop, basada en e
 
 - `domain/`: modelos, repositorios (contratos), casos de uso
 - `data/`: API remota (Ktor), persistencia local (Room), mappers, repositorios impl
-- `presentation/`: UI Compose, navegacion interna, ViewModels
+- `presentation/`: UI Compose, navegación interna, ViewModels
 - `di/`: modulos Koin
 
 ## Features implementadas
 
 - Home con hero de destacados y quick view
-- Catalogo con filtros (categoria, marca, precio, disponibilidad) y ordenamiento
+- Catalogo con filtros (categoría, marca, precio, disponibilidad) y ordenamiento
 - Regla visual especial para tacos/cues (cards en fila completa)
 - Busqueda por nombre y marca
 - Detalle de producto (galeria, talla, cantidad, add-to-cart)
@@ -48,18 +48,18 @@ Aplicacion Kotlin Multiplatform (Android + iOS) para Vince Pro Shop, basada en e
 ## Admin media upload (multiplatform)
 
 - Integrado `ImagePickerKMP` (`io.github.ismoy:imagepickerkmp:1.0.32`).
-- `Manage Categories`: seleccion de imagen unica + preview.
-- `Manage Inventory`: seleccion multiple, preview, reordenamiento y envio en orden exacto.
-- El envio de inventario replica el frontend web con:
+- `Manage Categories`: selección de imagen única + preview.
+- `Manage Inventory`: selección multiple, preview, reordenamiento y envío en orden exacto.
+- El envío de inventario replica el frontend web con:
   - `multipart/form-data`
   - campo `data` (JSON)
   - archivos `images[]`
   - `mediaPlan` (`existing` / `new(fileIndex)`) para preservar orden.
 - Hardening aplicado en KMP:
-  - limites equivalentes a web/backend (`min=1`, `max=20`, `max 20MB` por imagen de producto, `max 10MB` en categoria)
-  - validacion de tipo por firma binaria (`jpeg/png/webp/avif`)
+  - limites equivalentes a web/backend (`min=1`, `max=20`, `max 20MB` por imagen de producto, `max 10MB` en categoría)
+  - validación de tipo por firma binaria (`jpeg/png/webp/avif`)
   - bloqueo de UI durante guardado y el modal no se cierra si falla el request
-  - soporte de categoria padre por selector jerarquico (no texto libre)
+  - soporte de categoría padre por selector jerárquico (no texto libre)
 
 ## i18n KMP + RTL
 
@@ -72,7 +72,7 @@ Aplicacion Kotlin Multiplatform (Android + iOS) para Vince Pro Shop, basada en e
 
 ## Configuracion segura (`local.properties`)
 
-Este proyecto genera `LocalSecrets.kt` automaticamente desde `local.properties` (sin plugin custom), siguiendo un enfoque de automatizacion de secretos para KMP.
+Este proyecto genera `LocalSecrets.kt` automáticamente desde `local.properties` (sin plugin custom), siguiendo un enfoque de automatizacion de secretos para KMP.
 
 Guia base utilizada:
 
@@ -109,7 +109,7 @@ Referencia base: usa `local.properties.example` como plantilla local.
 
 ## JWT Session Storage
 
-- Backend admite autenticacion por cookie `token` y por header `Authorization: Bearer ...` en rutas protegidas.
+- Backend admite autenticación por cookie `token` y por header `Authorization: Bearer ...` en rutas protegidas.
 - En Android, el JWT se guarda en DataStore cifrado manualmente (AES/GCM) con clave en Android Keystore:
   - `composeApp/src/androidMain/kotlin/com/billiardsdraw/vinceproshop/data/security/EncryptedDataStoreTokenStore.kt`
 - En iOS, el JWT se guarda en DataStore Multiplatform cifrado manualmente (AES-CBC / CommonCrypto) con clave AES en Keychain:
