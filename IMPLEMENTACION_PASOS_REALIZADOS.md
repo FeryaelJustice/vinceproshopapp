@@ -1,4 +1,4 @@
-# Bitacora De Implementacion (Pasos Realizados)
+# Bitácora De Implementación (Pasos Realizados)
 
 ## Contexto Y Restricciones Aplicadas
 - Se uso como referencia funcional el repo web/backend: `C:\Users\nano9\vince-billiards-pro-shop`.
@@ -7,7 +7,7 @@
 - Secrets mantenidos en `local.properties` (enfoque seguro), sin crear plugin Gradle custom.
 - No se hizo build final por instruccion explicita.
 
-## Paso 1: Investigacion Del Flujo Real De Stripe En Web/Backend
+## Paso 1: Investigación Del Flujo Real De Stripe En Web/Backend
 Se revisaron rutas y contrato real:
 - Backend:
   - `POST /api/payments/create-intent`
@@ -20,13 +20,13 @@ Se revisaron rutas y contrato real:
 
 Conclusiones:
 - El sistema real de la web NO usa Stripe Terminal.
-- El flujo correcto para la app movil es PaymentIntent (online checkout), alineado a web.
+- El flujo correcto para la app móvil es PaymentIntent (online checkout), alineado a web.
 
 ## Paso 2: Estado Inicial Del Proyecto KMP Y Gap Detectado
 - El proyecto KMP estaba migrado a un flujo `Stripe Terminal` (reader discovery/connect/process), con capas `Terminal*`.
 - Ese flujo no correspondia al backend real disponible.
 
-## Paso 3: Decision Arquitectonica
+## Paso 3: Decisión Arquitectónica
 Se reemplazo el dominio `Terminal` por un dominio `Checkout` modular y alineado al backend real.
 
 Objetivo del refactor:
@@ -69,7 +69,7 @@ Archivo:
 Cambios:
 - Se registro `CheckoutApi`, `CheckoutRepository`, `CreatePaymentIntentUseCase`.
 - Se elimino wiring de `TerminalApi/TerminalRepository/TerminalUseCases`.
-- Se actualizo constructor de `CartViewModel` al nuevo flujo.
+- Se actualizo function Object() { [native code] } de `CartViewModel` al nuevo flujo.
 
 ## Paso 7: Refactor CartViewModel A Checkout Por Steps
 Archivo:
@@ -186,7 +186,7 @@ Cambios:
 - removida dependencia de `stripeterminal`
 - agregada dependencia `stripe-android`
 
-## Paso 13: Wiring De App Y Navegacion
+## Paso 13: Wiring De App Y Navegación
 Archivo:
 - `composeApp/src/commonMain/kotlin/com/billiardsdraw/vinceproshop/App.kt`
 
@@ -214,10 +214,10 @@ Con:
 En iOS/Xcode debes confirmar que el target `iosApp` tenga agregado el producto SPM `StripePaymentSheet`.
 
 ## Paso 15: Modulo Admin Completo En App KMP (Rutas `admin/*`)
-Se implemento navegacion y pantallas admin equivalentes al frontend web, integradas en Compose Multiplatform.
+Se implemento navegación y pantallas admin equivalentes al frontend web, integradas en Compose Multiplatform.
 
 Cambios clave:
-- Navegacion:
+- Navegación:
   - `presentation/navigation/AppNavigator.kt`
     - nuevo destino `AppDestination.AdminRoute(route, source)`.
     - nuevos metodos `openAdmin(...)` y `switchAdmin(...)`.
@@ -256,8 +256,8 @@ Endpoints cubiertos:
 
 Notas:
 - auth admin por `Authorization: Bearer` + cookie `token=...`.
-- `multipart/form-data` para productos/categorias con media.
-- soporte `mediaPlan` para preservar orden de imagenes y mezcla existing/new como en web.
+- `multipart/form-data` para productos/categorías con media.
+- soporte `mediaPlan` para preservar orden de imágenes y mezcla existing/new como en web.
 
 ## Paso 17: Pantallas Admin Por Secciones (Padre/Hijo)
 Se creo estructura por carpetas para mantener jerarquia y orden:
@@ -281,17 +281,17 @@ Capacidades implementadas:
 - navbar admin por grupos (Overview / Management) similar a web.
 
 ## Paso 18: Upload De Imagenes Multiplataforma Con ImagePickerKMP
-Se integro `ImagePickerKMP` version `1.0.32` para seleccion de imagenes:
+Se integro `ImagePickerKMP` version `1.0.32` para seleccion de imágenes:
 - dependencia agregada en:
   - `gradle/libs.versions.toml`
   - `composeApp/build.gradle.kts`
 
 Uso en pantallas:
 - `AdminManageCategoriesScreen`
-  - seleccion de 1 imagen, preview y envio multipart.
+  - seleccion de 1 imagen, preview y envío multipart.
 - `AdminManageInventoryScreen`
   - seleccion multiple (`allowMultiple = true`, `maxSelection = 10`).
-  - preview de imagenes (existing/new).
+  - preview de imágenes (existing/new).
   - reordenamiento con controles up/down.
   - construccion de `mediaPlan` + `uploads` para replicar orden exacto del frontend web.
 
@@ -329,24 +329,24 @@ Se reforzo el flujo de media para que sea equivalente al frontend web/backend:
   - `PRODUCT_IMAGE_MAX_COUNT = 20`
   - `PRODUCT_IMAGE_MAX_FILE_SIZE_MB = 20`
   - `CATEGORY_IMAGE_MAX_FILE_SIZE_MB = 10`
-  - validacion de MIME por firma binaria (`jpeg/png/webp/avif`).
+  - validación de MIME por firma binaria (`jpeg/png/webp/avif`).
 - `AdminManageInventoryScreen`:
-  - respeta limite maximo de imagenes al seleccionar.
+  - respeta limite máximo de imágenes al seleccionar.
   - valida cantidad min/max antes de guardar.
   - valida tamaño/tipo de cada nueva imagen antes de upload.
   - preserva `mimeType` real y extension al construir `AdminUploadImage`.
-  - valida filas de talla (size unica por fila, cantidad/precio/descuento validos).
+  - valida filas de talla (size única por fila, cantidad/precio/descuento validos).
   - bloquea acciones durante guardado y no cierra modal si falla.
 - `AdminManageCategoriesScreen`:
   - valida imagen seleccionada (tipo/tamaño) al pick.
-  - selector de categoria padre jerarquico (sin texto libre).
-  - evita asignar la categoria como su propio padre.
+  - selector de categoría padre jerárquico (sin texto libre).
+  - evita asignar la categoría como su propio padre.
   - bloquea acciones durante guardado y no cierra modal si falla.
 - `KtorAccountApi`:
-  - login usa serializacion JSON explicita (`Json.encodeToString(...)`) para evitar el error de request body por reflection.
+  - login usa serialización JSON explicita (`Json.encodeToString(...)`) para evitar el error de request body por reflection.
   - `AppModules.kt` actualizado para inyectar `Json` en `KtorAccountApi`.
 
 ## Estado De Verificacion
 - Se intento compilacion con `:composeApp:compileKotlinMetadata`.
 - No fue posible completar build por restriccion de red del entorno (no se pudo descargar el wrapper de Gradle).
-- Queda pendiente validacion final de compilacion en entorno con red habilitada.
+- Queda pendiente validación final de compilacion en entorno con red habilitada.

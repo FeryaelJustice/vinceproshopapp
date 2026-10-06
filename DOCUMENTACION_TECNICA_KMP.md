@@ -1,21 +1,21 @@
-# Documentacion Tecnica Del Proyecto KMP (Shared + Android + iOS)
+# Documentación Técnica Del Proyecto KMP (Shared + Android + iOS)
 
 ## 1) Objetivo Del Proyecto
-Aplicacion Kotlin Multiplatform + Compose Multiplatform para Vince Pro Shop con:
-- catalogo de productos,
+Aplicación Kotlin Multiplatform + Compose Multiplatform para Vince Pro Shop con:
+- catálogo de productos,
 - detalle y carrito persistente,
 - checkout Stripe equivalente al flujo web,
-- cuenta de usuario (login/sesion/pedidos) y vista admin de pedidos/secciones.
+- cuenta de usuario (login/sesión/pedidos) y vista admin de pedidos/secciones.
 
 El proyecto sigue Clean Architecture + MVVM:
 - `domain`: reglas de negocio y contratos.
 - `data`: implementaciones concretas (API remota, Room, mappers).
 - `presentation`: UI Compose y ViewModels.
 
-## 2) Modulos Y Responsabilidades
+## 2) Módulos Y Responsabilidades
 - `composeApp`:
   - modulo compartido principal (common + androidMain + iosMain).
-  - contiene casi toda la logica de negocio, UI y datos.
+  - contiene casi toda la lógica de negocio, UI y datos.
 - `androidApp`:
   - cascaron Android (Activity, Manifest, recursos).
   - carga `App()` de `composeApp`.
@@ -40,7 +40,7 @@ Contiene:
 ### 3.3 Presentation (MVVM)
 - `ViewModel` contiene estado y acciones.
 - `Screen`/`Composable` renderiza `UiState` y dispara callbacks.
-- `AppNavigator` maneja estado de navegacion simple en memoria.
+- `AppNavigator` maneja estado de navegación simple en memoria.
 
 ### 3.4 DI (Koin)
 - `di/AppModules.kt` define grafo principal.
@@ -51,7 +51,7 @@ Contiene:
 ### 4.1 Core
 - `core/DispatchersProvider.kt`
   - `DispatchersProvider`: interfaz para `main/io/default`.
-  - `StandardDispatchers`: implementacion real.
+  - `StandardDispatchers`: implementación real.
 - `core/Localization.kt`
   - `LocalizationManager` con idioma en runtime (`system/en/es/ar`).
   - `rememberCurrentLanguageCodeState()` y `rememberLanguageOptionState()`.
@@ -124,13 +124,13 @@ Archivos:
 - `data/local/Daos.kt`
   - `ProductDao`, `CategoryDao`, `FeaturedDao`, `CartDao`.
 - `data/local/VinceProShopDatabase.kt`
-  - clase `RoomDatabase` + constructor expect/actual.
+  - clase `RoomDatabase` + function Object() { [native code] } expect/actual.
 - `data/local/DatabaseFactory.kt`
   - `platformDatabaseBuilder(...)` expect
   - `createRoomDatabase()` shared.
 
 Funcionamiento:
-- cache local de catalogo + featured + categorias.
+- cache local de catálogo + featured + categorías.
 - carrito persistente local en tabla `cart_items`.
 
 ### 4.6 Data Remote (Ktor + DTO)
@@ -172,10 +172,10 @@ Comportamiento importante:
 - `data/remote/NetworkPlatform.kt` (expect)
 - `androidMain` y `iosMain` dan `actual`.
 
-Configuracion aplicada:
+Configuración aplicada:
 - ContentNegotiation JSON
 - HttpTimeout
-- HttpCookies (`AcceptAllCookiesStorage`) para sesion JWT cookie-compatible con backend
+- HttpCookies (`AcceptAllCookiesStorage`) para sesión JWT cookie-compatible con backend
 - Logging opcional controlado por `VINCE_HTTP_LOGS_ENABLED`
 
 ### 4.7 Repositories Impl
@@ -185,7 +185,7 @@ Configuracion aplicada:
 - `data/repository/CartRepositoryImpl.kt`
   - merge de items por clave (`slug`,`size`) y persistencia local.
 - `data/repository/AccountRepositoryImpl.kt`
-  - login/logout/sesion/pedidos via API.
+  - login/logout/sesión/pedidos via API.
 - `data/repository/CheckoutRepositoryImpl.kt`
   - crea PaymentIntent para checkout.
 
@@ -202,7 +202,7 @@ Configuracion aplicada:
   - renderiza scaffold con top bar + bottom bar.
   - abre account en `ModalBottomSheet`.
 
-#### Navegacion
+#### Navegación
 - `presentation/navigation/AppNavigator.kt`
   - `RootSection`: `Home`, `Catalog`, `Search`, `Cart`.
   - `AppDestination`: Root o ProductDetail.
@@ -240,7 +240,7 @@ Configuracion aplicada:
 
 Comportamiento:
 - login/logout
-- refresco de sesion
+- refresco de sesión
 - pedidos de usuario
 - pedidos admin + lista de secciones admin
 
@@ -337,7 +337,7 @@ Comportamiento:
 - `AccountRepositoryImpl`
 - `CheckoutRepositoryImpl`
 
-## 9) Secrets Y Configuracion
+## 9) Secrets Y Configuración
 `composeApp/build.gradle.kts` genera `LocalSecrets.kt` desde `local.properties`.
 
 Llaves:
@@ -675,7 +675,7 @@ C:\Users\nano9\AndroidStudioProjects\vinceproshop-app\composeApp\src\commonMain\
 
 ## 12) Actualizacion Admin KMP (2026-02-15)
 
-### 12.1 Navegacion admin como rutas reales
+### 12.1 Navegación admin como rutas reales
 Se extendio `AppNavigator` para soportar destinos `admin/*` como pantallas normales (no solo texto en sheet):
 - `AppDestination.AdminRoute(route, source)`
 - `openAdmin(route)`
@@ -729,7 +729,7 @@ Incluye CRUD para:
 - `Authorization: Bearer <token>`
 - `Cookie: token=<token>`
 
-### 12.4 Subida de imagenes multiplataforma
+### 12.4 Subida de imágenes multiplataforma
 Se integro `ImagePickerKMP` `1.0.32` en common:
 - dependencia en `libs.versions.toml` y `composeApp/build.gradle.kts`.
 
@@ -740,7 +740,7 @@ Uso:
 Se replica flujo web de media en inventory mediante:
 - `mediaPlan` (existing/new + fileIndex)
 - payload `data` JSON + `images[]` multipart
-- preservacion de orden de imagenes hacia backend.
+- preservacion de orden de imágenes hacia backend.
 
 ### 12.5 Endpoints admin usados por KMP
 - `GET /admin/orders`
@@ -784,8 +784,8 @@ No fue posible ejecutar compilacion final por restriccion de red del entorno (wr
 ### 13.2 Hardening De Media Admin
 - Nuevo shared helper: `presentation/admin/AdminMediaRules.kt`.
 - Reglas alineadas al backend/web:
-  - productos: minimo 1, maximo 20, maximo 20MB por imagen.
-  - categorias: maximo 10MB por imagen.
+  - productos: mínimo 1, máximo 20, máximo 20MB por imagen.
+  - categorías: máximo 10MB por imagen.
   - tipos permitidos: `jpeg/png/webp/avif`.
 - Validacion de tipo por firma binaria (no solo extension).
 - `AdminManageInventoryScreen`:
@@ -795,8 +795,8 @@ No fue posible ejecutar compilacion final por restriccion de red del entorno (wr
   - bloquea acciones durante guardado y mantiene modal si falla.
 - `AdminManageCategoriesScreen`:
   - valida imagen al pick.
-  - parent category via selector jerarquico.
-  - evita autorreferencia (categoria padre == categoria actual).
+  - parent category via selector jerárquico.
+  - evita autorreferencia (categoría padre == categoría actual).
   - bloquea acciones durante guardado y mantiene modal si falla.
 
 ### 13.3 Estabilidad Del Login Request
